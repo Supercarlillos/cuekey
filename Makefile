@@ -1,7 +1,7 @@
 PYTHON ?= python3.13
 VENV := .venv
 
-.PHONY: install dev test coverage clean
+.PHONY: install dev test coverage dmg clean
 
 install:
 	pipx install .
@@ -16,6 +16,9 @@ test:
 
 coverage:
 	$(VENV)/bin/pytest --cov --cov-report=term-missing
+
+dmg:
+	packaging/build_dmg.sh
 
 clean:
 	rm -rf $(VENV) dist build .pytest_cache .coverage *.egg-info

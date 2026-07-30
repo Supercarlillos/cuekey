@@ -21,6 +21,20 @@ Supported formats: MP3, M4A/AAC, FLAC, WAV, AIFF, OGG.
 
 ## Install
 
+### Desktop app (DMG)
+
+Build (or download from Releases, once published) the standalone app — no Python required on the target Mac:
+
+```bash
+make dev && make dmg          # produces dist/CueKey-<version>.dmg
+```
+
+Open the DMG and drag **CueKey.app** to Applications. The build is not code-signed/notarized, so on first launch right-click the app and choose **Open** (or run `xattr -dr com.apple.quarantine /Applications/CueKey.app`).
+
+The app lets you add files or a folder (or pick a rekordbox XML), shows key/BPM/energy/cues per track with progress, and can write file tags and enriched XML — same engine as the CLI.
+
+### CLI
+
 The recommended way on macOS is [pipx](https://pipx.pypa.io):
 
 ```bash
@@ -87,7 +101,8 @@ Mix between tracks whose wheel numbers are equal or adjacent, keeping the same l
 
 ## Roadmap
 
-- [ ] Native macOS app bundle (menu-bar / drag-and-drop GUI)
+- [x] macOS app bundle + DMG (Tkinter GUI, PyInstaller)
+- [ ] Code signing & notarization for the DMG
 - [ ] Direct `master.db` reading (rekordbox 6/7) via pyrekordbox
 - [ ] Homebrew tap (`brew install cuekey`)
 - [ ] Serato / Traktor / Engine DJ export

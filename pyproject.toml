@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cuekey"
-version = "0.1.0"
+version = "0.2.0"
 description = "Open-source DJ track analysis: musical key (Camelot/Open Key), BPM, energy level and automatic cue points, with rekordbox XML integration."
 readme = "README.md"
 license = { text = "MIT" }
@@ -38,6 +38,9 @@ dev = [
 
 [project.scripts]
 cuekey = "cuekey.cli:main"
+
+[project.gui-scripts]
+cuekey-gui = "cuekey.gui:main"
 
 [project.urls]
 Homepage = "https://github.com/carlosgamez/cuekey"

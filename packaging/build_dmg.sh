@@ -16,10 +16,11 @@ echo "==> Building CueKey.app v$VERSION"
 "$VENV/bin/pyinstaller" --noconfirm --clean \
     --windowed \
     --name CueKey \
+    --icon packaging/icon.icns \
     --osx-bundle-identifier dev.cuekey.app \
     --collect-submodules librosa \
     --collect-data librosa \
-    --collect-data customtkinter \
+    --collect-data cuekey \
     packaging/cuekey_gui_entry.py
 
 APP="dist/CueKey.app"

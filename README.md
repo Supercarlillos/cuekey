@@ -31,7 +31,7 @@ make dev && make dmg          # produces dist/CueKey-<version>.dmg
 
 Open the DMG and drag **CueKey.app** to Applications. The build is not code-signed/notarized, so on first launch right-click the app and choose **Open** (or run `xattr -dr com.apple.quarantine /Applications/CueKey.app`).
 
-The app lets you add files or a folder (or pick a rekordbox XML), shows key/BPM/energy/cues per track with progress, and can write file tags and enriched XML — same engine as the CLI.
+The app is a native macOS window with a dark, product-grade interface: drag & drop files or folders (or pick a rekordbox XML), watch tracks fill in with a color-coded key pill, BPM, an energy bar and cue count; click a track to see the interactive harmonic wheel highlighting every compatible key, an energy meter and the cue timeline. Sortable columns, live filter, Camelot/Open Key/classic notation switch, and optional tag writing — same engine as the CLI.
 
 ### CLI
 

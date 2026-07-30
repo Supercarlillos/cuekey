@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>CueKey</title>
+  <link rel="stylesheet" href="app.css" />
+</head>
+<body>
+  <div id="drop-overlay"><div class="drop-card">⤓&nbsp;&nbsp;Drop audio files to add them</div></div>
+
+  <header>
+    <div class="brand">
+      <svg class="logo" viewBox="0 0 32 32" aria-hidden="true">
+        <defs>
+          <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#8b5cf6"/><stop offset="1" stop-color="#34d3c0"/>
+          </linearGradient>
+        </defs>
+        <circle cx="16" cy="16" r="13" fill="none" stroke="url(#lg)" stroke-width="3.5"
+                stroke-dasharray="14 5.5" stroke-linecap="round"/>
+        <circle cx="16" cy="16" r="4.4" fill="url(#lg)"/>
+      </svg>
+      <span class="name">CueKey</span>
+      <span class="tagline">harmonic mixing analysis</span>
+    </div>
+    <div class="header-actions">
+      <button class="btn ghost" onclick="CueKey.addFiles()">＋ Files</button>
+      <button class="btn ghost" onclick="CueKey.addFolder()">＋ Folder</button>
+      <button class="btn ghost" onclick="CueKey.enrichRekordbox()">⟳ rekordbox XML</button>
+      <span class="version" id="version"></span>
+    </div>
+  </header>
+
+  <section class="controls">
+    <div class="segmented" id="notation">
+      <button data-value="camelot" class="active">Camelot</button>
+      <button data-value="openkey">Open Key</button>
+      <button data-value="standard">Classic</button>
+    </div>
+    <label class="switch"><input type="checkbox" id="opt-tags"/><span class="slider"></span>Write tags</label>
+    <label class="switch"><input type="checkbox" id="opt-hotcues"/><span class="slider"></span>Hot cues</label>
+    <input type="search" id="filter" placeholder="Filter tracks…" />
+    <button class="btn primary" id="analyze-btn" onclick="CueKey.analyze()">▶&nbsp;&nbsp;Analyze</button>
+  </section>
+
+  <main>
+    <div class="table-wrap" id="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort="name" class="sortable">Track</th>
+            <th data-sort="wheel" class="sortable center w-key">Key</th>
+            <th data-sort="bpm" class="sortable right w-bpm">BPM</th>
+            <th data-sort="energy" class="sortable w-energy">Energy</th>
+            <th class="center w-cues">Cues</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+      <div class="empty-state" id="empty-state">
+        <div class="empty-icon">◈</div>
+        <p>Drop audio files here, or use <b>＋ Files</b> / <b>＋ Folder</b>.</p>
+        <p class="dim">Or pick a <b>rekordbox XML</b> collection to enrich it with key, BPM, energy and cue points.</p>
+      </div>
+    </div>
+
+    <aside class="detail">
+      <div class="wheel-card">
+        <svg id="wheel" viewBox="-110 -110 220 220"></svg>
+        <div class="wheel-center" id="wheel-center">—</div>
+      </div>
+      <div class="detail-card" id="detail-card">
+        <div class="detail-title" id="detail-title">Select a track</div>
+        <div class="detail-meta" id="detail-meta">Key, BPM, energy and cues will show here.</div>
+        <div class="energy-row">
+          <span class="label">ENERGY</span>
+          <div class="energy-meter" id="energy-meter"></div>
+          <span class="energy-num" id="energy-num">–</span>
+        </div>
+        <div class="cue-strip-wrap">
+          <span class="label">CUES</span>
+          <div class="cue-strip" id="cue-strip"></div>
+        </div>
+        <div class="compat" id="compat"></div>
+      </div>
+    </aside>
+  </main>
+
+  <footer>
+    <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
+    <div class="status" id="status">Add audio files or pick a rekordbox XML to start.</div>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

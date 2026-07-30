@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cuekey"
-version = "0.2.0"
+version = "0.3.0"
 description = "Open-source DJ track analysis: musical key (Camelot/Open Key), BPM, energy level and automatic cue points, with rekordbox XML integration."
 readme = "README.md"
 license = { text = "MIT" }
@@ -28,6 +28,7 @@ dependencies = [
     "mutagen>=1.47",
     "click>=8.1",
     "rich>=13.0",
+    "customtkinter>=5.2",
 ]
 
 [project.optional-dependencies]

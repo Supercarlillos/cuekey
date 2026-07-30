@@ -19,6 +19,7 @@ echo "==> Building CueKey.app v$VERSION"
     --osx-bundle-identifier dev.cuekey.app \
     --collect-submodules librosa \
     --collect-data librosa \
+    --collect-data customtkinter \
     packaging/cuekey_gui_entry.py
 
 APP="dist/CueKey.app"

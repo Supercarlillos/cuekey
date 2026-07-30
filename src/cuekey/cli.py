@@ -88,7 +88,7 @@ def analyze(paths: tuple[Path, ...], notation: str, tags: bool, as_json: bool, n
             table.add_row(
                 r.path.name,
                 r.key.key.notation(notation),
-                f"{r.bpm:.1f}",
+                f"{r.bpm:g}",
                 str(r.energy),
                 str(len(r.cues)),
             )

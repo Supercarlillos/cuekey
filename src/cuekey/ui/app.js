@@ -37,6 +37,8 @@ function notationOf(track) {
 
 const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(Math.floor(s % 60)).padStart(2, "0")}`;
 
+const fmtBpm = (b) => (Number.isInteger(b) ? String(b) : b.toFixed(1));
+
 /* ------------------------------------------------------------- table */
 
 function visibleTracks() {
@@ -89,7 +91,7 @@ function renderTable() {
 
     const bpm = document.createElement("td");
     bpm.className = "right";
-    bpm.textContent = t.bpm != null ? t.bpm.toFixed(1) : "";
+    bpm.textContent = t.bpm != null ? fmtBpm(t.bpm) : "";
     tr.appendChild(bpm);
 
     const energy = document.createElement("td");
@@ -179,7 +181,7 @@ function selectTrack(id) {
 
   $("detail-title").textContent = track.name;
   $("detail-meta").textContent =
-    `${track.standard} · ${track.bpm.toFixed(1)} BPM · ${mmss(track.duration)}`;
+    `${track.standard} · ${fmtBpm(track.bpm)} BPM · ${mmss(track.duration)}`;
 
   const meter = $("energy-meter");
   meter.innerHTML = "";

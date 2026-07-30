@@ -103,6 +103,60 @@ def test_playlist_filter(collection_xml: tuple[Path, Path], tmp_path: Path) -> N
         collection.tracks_in_playlist("Nope")
 
 
+def _write_collection_with_existing_cues(xml_path: Path, track_path: Path) -> None:
+    """Collection whose track already has DJ-made cues: memory at 1.2s and hot cue A at 95s."""
+    xml_path.write_text(
+        f"""<?xml version="1.0" encoding="UTF-8"?>
+<DJ_PLAYLISTS Version="1.0.0">
+  <COLLECTION Entries="1">
+    <TRACK TrackID="1" Name="Worked Track" Location="{_location_url(track_path)}" TotalTime="30">
+      <POSITION_MARK Name="my intro" Type="0" Start="1.200" Num="-1"/>
+      <POSITION_MARK Name="my drop" Type="0" Start="95.000" Num="0"/>
+    </TRACK>
+  </COLLECTION>
+</DJ_PLAYLISTS>
+""",
+        encoding="utf-8",
+    )
+
+
+def test_existing_cues_are_preserved_by_default(collection_xml: tuple[Path, Path], tmp_path: Path) -> None:
+    _, track = collection_xml
+    xml_path = tmp_path / "worked.xml"
+    _write_collection_with_existing_cues(xml_path, track)
+    out = tmp_path / "out.xml"
+
+    # Fake analysis cues at 1.0s (within 1s of the DJ's 1.2s mark) and 30.0s.
+    enrich_collection(xml_path, out, analyze=_fake_analysis, hot_cues=True)
+
+    track_el = ET.parse(out).getroot().find("COLLECTION/TRACK[@TrackID='1']")
+    marks = [(m.get("Name"), m.get("Start"), m.get("Num")) for m in track_el.findall("POSITION_MARK")]
+
+    # The DJ's original marks are untouched.
+    assert ("my intro", "1.200", "-1") in marks
+    assert ("my drop", "95.000", "0") in marks
+    # The 1.0s CueKey cue was skipped (too close to 1.2s); the 30.0s one was
+    # added as memory cue plus hot cue in the first free slot (B, since A is taken).
+    starts = [m[1] for m in marks]
+    assert "1.000" not in starts
+    assert ("", "30.000", "-1") in marks
+    assert ("", "30.000", "1") in marks
+    assert len(marks) == 4
+
+
+def test_replace_cues_regenerates_everything(collection_xml: tuple[Path, Path], tmp_path: Path) -> None:
+    _, track = collection_xml
+    xml_path = tmp_path / "worked.xml"
+    _write_collection_with_existing_cues(xml_path, track)
+    out = tmp_path / "out.xml"
+
+    enrich_collection(xml_path, out, analyze=_fake_analysis, hot_cues=True, replace_cues=True)
+
+    track_el = ET.parse(out).getroot().find("COLLECTION/TRACK[@TrackID='1']")
+    marks = [(m.get("Start"), m.get("Num")) for m in track_el.findall("POSITION_MARK")]
+    assert marks == [("1.000", "-1"), ("1.000", "0"), ("30.000", "-1"), ("30.000", "1")]
+
+
 def test_analysis_errors_do_not_abort_batch(collection_xml: tuple[Path, Path], tmp_path: Path) -> None:
     xml_path, _ = collection_xml
     out = tmp_path / "out.xml"

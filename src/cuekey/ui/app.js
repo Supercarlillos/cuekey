@@ -10,6 +10,7 @@ const state = {
   filter: "",
   sortKey: null,
   sortDir: 1,
+  cueMode: "keep",
   total: 0,
   done: 0,
   busy: false,
@@ -291,6 +292,7 @@ const CueKey = {
       notation: state.notation,
       write_tags: $("opt-tags").checked,
       hot_cues: $("opt-hotcues").checked,
+      replace_cues: state.cueMode === "replace",
     });
     if (started) setBusy(true);
   },
@@ -311,6 +313,13 @@ document.addEventListener("DOMContentLoaded", () => {
     for (const b of $("notation").children) b.classList.toggle("active", b === btn);
     renderTable();
     if (state.selectedId !== null) selectTrack(state.selectedId);
+  });
+
+  $("cue-mode").addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (!btn) return;
+    state.cueMode = btn.dataset.value;
+    for (const b of $("cue-mode").children) b.classList.toggle("active", b === btn);
   });
 
   $("filter").addEventListener("input", (e) => { state.filter = e.target.value; renderTable(); });

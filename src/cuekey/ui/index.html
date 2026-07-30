@@ -39,6 +39,13 @@
     </div>
     <label class="switch"><input type="checkbox" id="opt-tags"/><span class="slider"></span>Write tags</label>
     <label class="switch"><input type="checkbox" id="opt-hotcues"/><span class="slider"></span>Hot cues</label>
+    <div class="cue-mode" title="What to do with cues already present in your collection">
+      <span class="mini-label">Existing cues</span>
+      <div class="segmented" id="cue-mode">
+        <button data-value="keep" class="active">Keep</button>
+        <button data-value="replace">Replace</button>
+      </div>
+    </div>
     <input type="search" id="filter" placeholder="Filter tracks…" />
     <button class="btn primary" id="analyze-btn" onclick="CueKey.analyze()">▶&nbsp;&nbsp;Analyze</button>
   </section>

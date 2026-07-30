@@ -136,6 +136,9 @@ header {
 .switch input:checked + .slider { background: var(--accent); border-color: transparent; }
 .switch input:checked + .slider::after { transform: translateX(15px); background: #fff; }
 
+.cue-mode { display: inline-flex; align-items: center; gap: 8px; }
+.mini-label { color: var(--text-dim); font-size: 12.5px; }
+
 #filter {
   flex: 1;
   max-width: 260px;

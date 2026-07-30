@@ -180,7 +180,8 @@ class Api:
 
             count = enrich_collection(
                 xml_in, xml_out, analyze=analyze_file,
-                notation=notation, hot_cues=bool(options.get("hot_cues")), on_track=on_track,
+                notation=notation, hot_cues=bool(options.get("hot_cues")),
+                replace_cues=bool(options.get("replace_cues")), on_track=on_track,
             )
             self._emit({"type": "done",
                         "message": f"{count} tracks analyzed → {xml_out.name}. Import it via "

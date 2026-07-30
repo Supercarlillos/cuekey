@@ -44,17 +44,40 @@ class RekordboxTrack:
         parsed = urllib.parse.urlparse(url)
         return Path(urllib.request.url2pathname(parsed.path))
 
-    def apply(self, analysis: TrackAnalysis, notation: str, hot_cues: bool) -> None:
+    def apply(
+        self,
+        analysis: TrackAnalysis,
+        notation: str,
+        hot_cues: bool,
+        replace_cues: bool = False,
+    ) -> None:
+        """Write analysis results into the TRACK element.
+
+        Existing POSITION_MARKs (the DJ's own cues) are preserved by default:
+        CueKey cues are added as extra memory cues, skipping any that land
+        within 1 second of an existing mark, and hot cues only fill free A-H
+        slots. With replace_cues=True all existing marks are regenerated.
+        """
         self.element.set("Tonality", analysis.key.key.standard)
         self.element.set("AverageBpm", f"{analysis.bpm:.2f}")
         self.element.set("Comments", analysis.summary_comment(notation))
 
-        for mark in self.element.findall("POSITION_MARK"):
-            self.element.remove(mark)
-        for index, cue in enumerate(analysis.cues):
+        if replace_cues:
+            for mark in self.element.findall("POSITION_MARK"):
+                self.element.remove(mark)
+        existing = self.element.findall("POSITION_MARK")
+        existing_starts = [float(m.get("Start", "0")) for m in existing]
+        used_slots = {int(m.get("Num", "-1")) for m in existing}
+        free_slots = iter(n for n in range(8) if n not in used_slots)
+
+        for cue in analysis.cues:
+            if any(abs(cue.seconds - start) < 1.0 for start in existing_starts):
+                continue  # the DJ already marked this spot — respect it
             self._add_position_mark(cue.seconds, num=-1)  # memory cue
-            if hot_cues and index < 8:
-                self._add_position_mark(cue.seconds, num=index)
+            if hot_cues:
+                slot = next(free_slots, None)
+                if slot is not None:
+                    self._add_position_mark(cue.seconds, num=slot)
         self.element.set("TotalTime", self.element.get("TotalTime") or str(int(analysis.duration)))
 
     def _add_position_mark(self, seconds: float, num: int) -> None:
@@ -112,6 +135,7 @@ def enrich_collection(
     playlist: str | None = None,
     notation: str = "camelot",
     hot_cues: bool = False,
+    replace_cues: bool = False,
     limit: int | None = None,
     on_track: Callable[[RekordboxTrack, TrackAnalysis | None, Exception | None], None] | None = None,
 ) -> int:
@@ -130,7 +154,7 @@ def enrich_collection(
             if on_track:
                 on_track(track, None, error)
             continue
-        track.apply(analysis, notation=notation, hot_cues=hot_cues)
+        track.apply(analysis, notation=notation, hot_cues=hot_cues, replace_cues=replace_cues)
         processed += 1
         if on_track:
             on_track(track, analysis, None)

@@ -80,11 +80,25 @@ encuentre en el disco se saltan sin detener el proceso.
 4. Para incorporar los datos a tu colección real, **arrastra las pistas (o
    playlists enteras) desde el nodo rekordbox xml hacia tu Colección**.
 
+## ¿Qué pasa con mis cues existentes?
+
+**Se respetan por defecto.** Si tu colección ya tiene hot cues o memory cues:
+
+- Tus marcas originales se conservan tal cual en el XML enriquecido.
+- Los cues de CueKey se añaden como memory cues *adicionales*, y se omiten
+  los que caigan a menos de 1 segundo de una marca tuya (sin duplicados).
+- Con hot cues activados, CueKey solo rellena los **huecos libres** (si ya
+  tienes el hot cue A, el suyo va al B, etc.).
+- Si prefieres regenerarlo todo desde cero: `--replace-cues` en el CLI, o
+  el selector **Existing cues: Keep / Replace** en la app.
+
 ## Avisos importantes
 
 - ⚠️ **Al importar una pista desde el XML, rekordbox reemplaza su
-  información** (incluidos tus memory/hot cues previos) por la del XML.
-  Prueba primero con una playlist pequeña o pistas nuevas.
+  información por la del XML** (es el comportamiento de rekordbox, no de
+  CueKey). Como el XML de CueKey conserva tus cues por defecto, no pierdes
+  nada — pero con *Replace* sí quedarían solo los cues generados. Prueba
+  primero con una playlist pequeña.
 - El XML enriquecido es un archivo nuevo: tu `collection.xml` original y tu
   base de datos de rekordbox quedan intactos hasta que tú arrastres algo.
 - **Alternativa sin XML**: `cuekey analyze ~/Música/DJ --tags` escribe

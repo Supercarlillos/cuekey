@@ -106,6 +106,10 @@ def analyze(paths: tuple[Path, ...], notation: str, tags: bool, as_json: bool, n
 @click.option("--playlist", default=None, help="Only analyze tracks in this playlist.")
 @click.option("--notation", type=click.Choice(NOTATIONS), default="camelot", show_default=True)
 @click.option("--hot-cues", is_flag=True, help="Also write cues as hot cues A-H (default: memory cues only).")
+@click.option(
+    "--replace-cues", is_flag=True,
+    help="Regenerate all cues, discarding existing ones (default: existing cues are preserved).",
+)
 @click.option("--tags", is_flag=True, help="Also write results into the audio file tags.")
 @click.option("--limit", type=int, default=None, help="Stop after N tracks (for a quick trial run).")
 def rekordbox(
@@ -114,6 +118,7 @@ def rekordbox(
     playlist: str | None,
     notation: str,
     hot_cues: bool,
+    replace_cues: bool,
     tags: bool,
     limit: int | None,
 ) -> None:
@@ -153,6 +158,7 @@ def rekordbox(
             playlist=playlist,
             notation=notation,
             hot_cues=hot_cues,
+            replace_cues=replace_cues,
             limit=limit,
             on_track=on_track,
         )

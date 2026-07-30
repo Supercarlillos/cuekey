@@ -172,5 +172,7 @@ def test_analysis_errors_do_not_abort_batch(collection_xml: tuple[Path, Path], t
     count = enrich_collection(xml_path, out, analyze=broken_analyzer, on_track=on_track)
 
     assert count == 0
-    assert failures == ["Synth Groove"]
+    # Both the failed analysis and the missing file are reported, so
+    # progress counters always reach the total.
+    assert failures == ["Synth Groove", "Ghost Track"]
     assert out.exists()

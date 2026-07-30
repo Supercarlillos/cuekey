@@ -147,6 +147,8 @@ def enrich_collection(
             break
         location = track.location
         if location is None or not location.exists():
+            if on_track:  # report so progress counters stay accurate
+                on_track(track, None, FileNotFoundError(f"file not found: {location}"))
             continue
         try:
             analysis = analyze(location)

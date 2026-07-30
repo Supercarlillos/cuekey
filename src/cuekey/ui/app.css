@@ -336,7 +336,17 @@ td.cues { text-align: center; color: var(--text-dim); font-family: var(--mono); 
 /* ----------------------------------------------------------------- footer */
 
 footer { padding: 12px 22px 16px; }
+.progress-row { display: flex; align-items: center; gap: 12px; }
+.progress-text {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--text-dim);
+  min-width: 128px;
+  text-align: right;
+  white-space: nowrap;
+}
 .progress {
+  flex: 1;
   height: 5px;
   border-radius: 3px;
   background: var(--panel-strong);

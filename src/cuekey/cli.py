@@ -142,6 +142,7 @@ def rekordbox(
         def on_track(track, analysis, error) -> None:
             if error is not None:
                 console.print(f"[red]error:[/red] {track.name}: {error}")
+                progress.advance(task)
                 return
             if tags and analysis is not None:
                 try:

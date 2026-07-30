@@ -211,7 +211,9 @@ function selectTrack(id) {
 /* ------------------------------------------------------------- events */
 
 function setProgress() {
-  $("progress-fill").style.width = state.total ? `${(state.done / state.total) * 100}%` : "0%";
+  const pct = state.total ? Math.round((state.done / state.total) * 100) : 0;
+  $("progress-fill").style.width = `${pct}%`;
+  $("progress-text").textContent = state.total ? `${state.done} / ${state.total} · ${pct}%` : "";
 }
 
 function setStatus(text) { $("status").textContent = text; }
@@ -252,6 +254,7 @@ const CueKey = {
         break;
       case "done":
         setBusy(false);
+        if (state.total) { state.done = state.total; setProgress(); }
         setStatus(event.message);
         break;
       case "fatal":

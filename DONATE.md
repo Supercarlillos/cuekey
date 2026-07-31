@@ -4,14 +4,14 @@ CueKey is free and noncommercial. If you find it useful, you can support the cre
 
 ## Ko-fi (PayPal or card)
 
-<!-- TODO-KOFI: replace with the real Ko-fi URL -->
-☕ **[ko-fi.com/TODO-KOFI](https://ko-fi.com/TODO-KOFI)**
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/supercarlillos)
+
+☕ **[ko-fi.com/supercarlillos](https://ko-fi.com/supercarlillos)**
 
 ## Bitcoin
 
-<!-- TODO-BTC: replace with the real BTC address -->
 ```
-TODO-BTC-ADDRESS
+bc1qwqzseyy2fpkkrwmr6zgvfjxadwnelkch6jvg3y
 ```
 
 Thank you! 🎧

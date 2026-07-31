@@ -3,6 +3,7 @@
 [![CI](https://github.com/Supercarlillos/cuekey/actions/workflows/ci.yml/badge.svg)](https://github.com/Supercarlillos/cuekey/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/Supercarlillos/cuekey)](https://github.com/Supercarlillos/cuekey/releases/latest)
 [![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)](LICENSE)
+[![Ko-fi](https://img.shields.io/badge/Ko--fi-support%20the%20project-FF5E5B?logo=ko-fi&logoColor=white)](https://ko-fi.com/supercarlillos)
 
 **Free DJ track analysis for harmonic mixing.** CueKey analyzes your music library and detects, for every track:
 
@@ -14,6 +15,14 @@
 Results can be written to your audio file tags and to a **rekordbox XML collection**, so key, BPM, energy and cue points show up directly in rekordbox.
 
 ![CueKey desktop app](docs/images/screenshot.png)
+
+## ♥ Support the project
+
+CueKey is free and will stay free for noncommercial use. If it saves you money or time, support the creator and the evolution of the product:
+
+[![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/supercarlillos)
+
+**Bitcoin:** `bc1qwqzseyy2fpkkrwmr6zgvfjxadwnelkch6jvg3y`
 
 > CueKey is an independent open-source project. It is not affiliated with, endorsed by, or derived from any commercial DJ software. "rekordbox" is a trademark of AlphaTheta Corporation, used here only to describe interoperability.
 
@@ -121,4 +130,4 @@ Mix between tracks whose wheel numbers are equal or adjacent, keeping the same l
 
 [PolyForm Noncommercial 1.0.0](LICENSE) — free to use, modify and share for any **noncommercial** purpose (personal use, hobby, education, nonprofits). Commercial use of the software or derivatives is not permitted. This makes CueKey *source-available* rather than OSI open source.
 
-Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). If CueKey is useful to you, consider [supporting the project](DONATE.md) ♥.
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md).

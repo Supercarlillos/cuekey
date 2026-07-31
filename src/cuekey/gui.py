@@ -23,8 +23,7 @@ from cuekey.models import TrackAnalysis
 
 WINDOW_TITLE = "CueKey"
 
-# TODO-KOFI: replace with the real Ko-fi URL once the account exists.
-DONATE_URL = "https://github.com/Supercarlillos/cuekey/blob/main/DONATE.md"
+DONATE_URL = "https://ko-fi.com/supercarlillos"
 
 _FILE_DIALOG_TYPES = (
     "Audio files (*.mp3;*.m4a;*.aac;*.flac;*.wav;*.aiff;*.aif;*.ogg;*.opus)",

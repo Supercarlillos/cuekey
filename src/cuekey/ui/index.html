@@ -27,9 +27,24 @@
       <button class="btn ghost" onclick="CueKey.addFiles()">＋ Files</button>
       <button class="btn ghost" onclick="CueKey.addFolder()">＋ Folder</button>
       <button class="btn ghost" onclick="CueKey.enrichRekordbox()">⟳ rekordbox XML</button>
+      <button class="btn ghost help-btn" onclick="CueKey.openHelp()" title="Help">?</button>
       <span class="version" id="version"></span>
     </div>
   </header>
+
+  <div id="help-modal">
+    <div class="help-card">
+      <div class="help-head">
+        <span class="help-title">Help</span>
+        <div class="segmented" id="help-lang">
+          <button data-value="es">ES</button>
+          <button data-value="en">EN</button>
+        </div>
+        <button class="help-close" onclick="CueKey.closeHelp()">✕</button>
+      </div>
+      <div class="help-body" id="help-body"></div>
+    </div>
+  </div>
 
   <section class="controls">
     <div class="segmented" id="notation">
@@ -101,6 +116,7 @@
     <div class="status" id="status">Add audio files or pick a rekordbox XML to start.</div>
   </footer>
 
+  <script src="help.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

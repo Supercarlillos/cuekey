@@ -291,6 +291,14 @@ const CueKey = {
     });
   },
 
+  openHelp() {
+    $("help-modal").classList.add("open");
+  },
+
+  closeHelp() {
+    $("help-modal").classList.remove("open");
+  },
+
   async enrichRekordbox() {
     if (state.busy) return;
     const started = await window.pywebview.api.enrich_rekordbox({
@@ -307,9 +315,26 @@ window.CueKey = CueKey;
 
 /* ------------------------------------------------------------ wiring */
 
+function setHelpLanguage(lang) {
+  $("help-body").innerHTML = HELP_CONTENT[lang] || HELP_CONTENT.en;
+  for (const b of $("help-lang").children) b.classList.toggle("active", b.dataset.value === lang);
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   buildWheel();
   renderTable();
+
+  setHelpLanguage(navigator.language && navigator.language.startsWith("es") ? "es" : "en");
+  $("help-lang").addEventListener("click", (e) => {
+    const btn = e.target.closest("button");
+    if (btn) setHelpLanguage(btn.dataset.value);
+  });
+  $("help-modal").addEventListener("click", (e) => {
+    if (e.target === $("help-modal")) CueKey.closeHelp();
+  });
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") CueKey.closeHelp();
+  });
 
   $("notation").addEventListener("click", (e) => {
     const btn = e.target.closest("button");

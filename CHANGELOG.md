@@ -11,7 +11,7 @@ All notable changes to CueKey are documented here. The format follows
 ### Added
 - Discreet donation button (♥) in the app footer and a "Support the project" help section (Ko-fi + Bitcoin).
 - Community files: contributing guide, code of conduct, issue/PR templates, donation info.
-- Automated GitHub Releases: pushing a `v*` tag builds Apple Silicon and Intel DMGs and publishes them.
+- Automated GitHub Releases: pushing a `v*` tag builds the Apple Silicon DMG and publishes it.
 
 ### Changed
 - License changed from MIT to **PolyForm Noncommercial 1.0.0**: CueKey is free for any noncommercial use; commercial use is not permitted.

@@ -38,9 +38,9 @@ Supported formats: MP3, M4A/AAC, FLAC, WAV, AIFF, OGG.
 
 ### Desktop app (DMG)
 
-**[⬇ Download the latest DMG from Releases](https://github.com/Supercarlillos/cuekey/releases/latest)** — pick `arm64` for Apple Silicon or `intel` for Intel Macs. No Python required.
+**[⬇ Download the latest DMG from Releases](https://github.com/Supercarlillos/cuekey/releases/latest)** — Apple Silicon (M1 and later). No Python required.
 
-Or build it yourself:
+On an Intel Mac, build it yourself (takes ~5 minutes):
 
 ```bash
 make dev && make dmg          # produces dist/CueKey-<version>.dmg

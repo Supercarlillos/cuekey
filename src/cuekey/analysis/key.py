@@ -50,7 +50,10 @@ def detect_key(y: np.ndarray, sr: int) -> KeyResult:
     """Detect the key of an audio signal."""
     import librosa
 
-    chroma = librosa.feature.chroma_cqt(y=y, sr=sr)
-    # Median over time is robust against percussive frames and noise.
+    # Kick drums and percussion smear the pitch-class profile; analyze the
+    # harmonic component only.
+    y_harmonic = librosa.effects.harmonic(y)
+    chroma = librosa.feature.chroma_cqt(y=y_harmonic, sr=sr)
+    # Median over time is robust against residual noise and transients.
     chroma_mean = np.median(chroma, axis=1)
     return detect_key_from_chroma(chroma_mean)

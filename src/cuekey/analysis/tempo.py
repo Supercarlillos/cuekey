@@ -70,11 +70,70 @@ def snap_bpm(bpm: float, tolerance: float = 0.2) -> float:
     return bpm
 
 
+# Common metrical confusions of beat trackers: 3:2 (syncopation), octave, 4:3.
+_METRICAL_FACTORS = (1.5, 2 / 3, 2.0, 0.5, 4 / 3, 0.75)
+_HOP_LENGTH = 512
+_SWITCH_MARGIN = 1.05  # only re-level if clearly better, to avoid flip-flopping
+
+
+def pick_metrical_level(bpm: float, onset_env: np.ndarray, sr: int) -> float:
+    """Resolve metrical-level errors (e.g. locking onto 2/3 of the true tempo).
+
+    Each candidate tempo is scored by the mean autocorrelation of the onset
+    envelope at the first 8 multiples of its beat period: the true tempo
+    aligns at every multiple, while a 3:2 mislock misses the odd ones.
+    """
+    import librosa
+
+    ac = librosa.autocorrelate(onset_env)
+    if ac.size == 0 or ac[0] <= 0:
+        return bpm
+    ac = ac / ac[0]
+
+    def score(candidate: float) -> float:
+        lag = 60.0 * sr / (_HOP_LENGTH * candidate)
+        total, used = 0.0, 0
+        for k in range(1, 9):
+            index = k * lag
+            i0 = int(index)
+            if i0 + 1 >= ac.size:
+                break
+            frac = index - i0
+            total += (1 - frac) * ac[i0] + frac * ac[i0 + 1]
+            used += 1
+        return total / used if used else 0.0
+
+    base_score = score(bpm)
+    best_bpm, best_score = bpm, base_score
+    for factor in _METRICAL_FACTORS:
+        candidate = fold_bpm(bpm * factor)
+        candidate_score = score(candidate)
+        if candidate_score > best_score:
+            best_bpm, best_score = candidate, candidate_score
+    if best_bpm != bpm and best_score > _SWITCH_MARGIN * base_score:
+        return best_bpm
+    return bpm
+
+
 def detect_tempo(y: np.ndarray, sr: int) -> BeatGrid:
     import librosa
 
-    tempo, beat_frames = librosa.beat.beat_track(y=y, sr=sr, trim=False)
-    bpm = float(np.atleast_1d(tempo)[0])
-    beat_times = librosa.frames_to_time(beat_frames, sr=sr)
-    bpm = snap_bpm(fold_bpm(refine_bpm(bpm, beat_times)))
+    onset_env = librosa.onset.onset_strength(y=y, sr=sr, hop_length=_HOP_LENGTH)
+    tempo, beat_frames = librosa.beat.beat_track(
+        onset_envelope=onset_env, sr=sr, hop_length=_HOP_LENGTH, trim=False
+    )
+    beat_times = librosa.frames_to_time(beat_frames, sr=sr, hop_length=_HOP_LENGTH)
+    bpm = fold_bpm(refine_bpm(float(np.atleast_1d(tempo)[0]), beat_times))
+
+    releveled = pick_metrical_level(bpm, onset_env, sr)
+    if abs(releveled - bpm) > 0.5:
+        # Re-track beats at the corrected tempo so the grid (and cue
+        # snapping) matches, then re-refine on the new grid.
+        _, beat_frames = librosa.beat.beat_track(
+            onset_envelope=onset_env, sr=sr, hop_length=_HOP_LENGTH,
+            bpm=releveled, trim=False,
+        )
+        beat_times = librosa.frames_to_time(beat_frames, sr=sr, hop_length=_HOP_LENGTH)
+        bpm = fold_bpm(refine_bpm(releveled, beat_times))
+    bpm = snap_bpm(bpm)
     return BeatGrid(bpm=round(bpm, 2), beat_times=beat_times)

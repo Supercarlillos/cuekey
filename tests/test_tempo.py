@@ -1,6 +1,13 @@
 import pytest
 
-from cuekey.analysis.tempo import BeatGrid, detect_tempo, fold_bpm, refine_bpm, snap_bpm
+from cuekey.analysis.tempo import (
+    BeatGrid,
+    detect_tempo,
+    fold_bpm,
+    pick_metrical_level,
+    refine_bpm,
+    snap_bpm,
+)
 from tests.conftest import click_track
 
 import numpy as np
@@ -48,6 +55,17 @@ def test_refine_bpm_uses_mean_beat_interval() -> None:
 )
 def test_snap_bpm(raw: float, snapped: float) -> None:
     assert snap_bpm(raw) == pytest.approx(snapped)
+
+
+def test_metrical_level_recovers_from_two_thirds_lock(sr: int) -> None:
+    import librosa
+
+    audio = click_track(bpm=120.0, duration_s=30.0, sr=sr)
+    onset_env = librosa.onset.onset_strength(y=audio, sr=sr, hop_length=512)
+    # A tracker locked at 2/3 of the true tempo (80 BPM) must be corrected.
+    assert pick_metrical_level(80.0, onset_env, sr) == pytest.approx(120.0)
+    # The true tempo must be kept as-is.
+    assert pick_metrical_level(120.0, onset_env, sr) == pytest.approx(120.0)
 
 
 def test_downbeats_are_every_fourth_beat() -> None:

@@ -6,6 +6,12 @@ All notable changes to CueKey are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-07-31
+
+### Fixed
+- BPM metrical-level errors: trackers locking onto 2/3 of the true tempo on syncopated house tracks (e.g. 80.7 instead of 121) are now corrected by scoring candidate tempos against the onset-envelope autocorrelation at 8 beat-period multiples.
+- Key detection on percussion-heavy tracks: chroma is now computed on the harmonic component only (HPSS), fixing whole-tone misdetections caused by kick/percussion smearing.
+
 ## [0.7.0] - 2026-07-31
 
 ### Added

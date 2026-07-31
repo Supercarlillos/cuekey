@@ -337,6 +337,9 @@ td.cues { text-align: center; color: var(--text-dim); font-family: var(--mono); 
 
 footer { padding: 12px 22px 16px; }
 .progress-row { display: flex; align-items: center; gap: 12px; }
+.btn.ctrl { padding: 5px 12px; font-size: 12px; }
+.btn.ctrl.hidden { display: none; }
+.btn.danger:hover { background: rgba(244, 88, 122, 0.18); border-color: rgba(244, 88, 122, 0.5); }
 .progress-text {
   font-family: var(--mono);
   font-size: 11.5px;

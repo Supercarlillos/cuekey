@@ -14,6 +14,7 @@ const state = {
   total: 0,
   done: 0,
   busy: false,
+  paused: false,
 };
 
 const $ = (id) => document.getElementById(id);
@@ -222,7 +223,11 @@ function setStatus(text) { $("status").textContent = text; }
 
 function setBusy(busy) {
   state.busy = busy;
+  state.paused = false;
   $("analyze-btn").disabled = busy;
+  $("pause-btn").classList.toggle("hidden", !busy);
+  $("cancel-btn").classList.toggle("hidden", !busy);
+  $("pause-btn").textContent = "⏸ Pause";
 }
 
 function upsertTrack(data) {
@@ -289,6 +294,20 @@ const CueKey = {
       notation: state.notation,
       write_tags: $("opt-tags").checked,
     });
+  },
+
+  async pauseResume() {
+    if (!state.busy) return;
+    state.paused = !state.paused;
+    $("pause-btn").textContent = state.paused ? "▶ Resume" : "⏸ Pause";
+    if (state.paused) await window.pywebview.api.pause_analysis();
+    else await window.pywebview.api.resume_analysis();
+  },
+
+  async cancel() {
+    if (!state.busy) return;
+    await window.pywebview.api.cancel_analysis();
+    setStatus("Cancelling — finishing the current track…");
   },
 
   openHelp() {

@@ -157,6 +157,40 @@ def test_replace_cues_regenerates_everything(collection_xml: tuple[Path, Path], 
     assert marks == [("1.000", "-1"), ("1.000", "0"), ("30.000", "-1"), ("30.000", "1")]
 
 
+def test_should_stop_saves_partial_result(tmp_path: Path) -> None:
+    tracks = []
+    for name in ("one.wav", "two.wav"):
+        track = tmp_path / name
+        track.write_bytes(b"\x00" * 64)
+        tracks.append(track)
+    xml_path = tmp_path / "two-tracks.xml"
+    xml_path.write_text(
+        f"""<?xml version="1.0" encoding="UTF-8"?>
+<DJ_PLAYLISTS Version="1.0.0">
+  <COLLECTION Entries="2">
+    <TRACK TrackID="1" Name="One" Location="{_location_url(tracks[0])}"/>
+    <TRACK TrackID="2" Name="Two" Location="{_location_url(tracks[1])}"/>
+  </COLLECTION>
+</DJ_PLAYLISTS>
+""",
+        encoding="utf-8",
+    )
+    out = tmp_path / "out.xml"
+    done: list[str] = []
+
+    count = enrich_collection(
+        xml_path, out, analyze=_fake_analysis,
+        on_track=lambda track, analysis, error: done.append(track.name),
+        should_stop=lambda: len(done) >= 1,  # cancel after the first track
+    )
+
+    assert count == 1
+    root = ET.parse(out).getroot()
+    assert root.find("COLLECTION/TRACK[@TrackID='1']").get("Tonality") == "Am"
+    # The second track was not analyzed but survives untouched in the output.
+    assert root.find("COLLECTION/TRACK[@TrackID='2']").get("Tonality") is None
+
+
 def test_analysis_errors_do_not_abort_batch(collection_xml: tuple[Path, Path], tmp_path: Path) -> None:
     xml_path, _ = collection_xml
     out = tmp_path / "out.xml"

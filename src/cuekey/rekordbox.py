@@ -138,12 +138,19 @@ def enrich_collection(
     replace_cues: bool = False,
     limit: int | None = None,
     on_track: Callable[[RekordboxTrack, TrackAnalysis | None, Exception | None], None] | None = None,
+    should_stop: Callable[[], bool] | None = None,
 ) -> int:
-    """Analyze every locatable track and write the enriched XML. Returns count."""
+    """Analyze every locatable track and write the enriched XML. Returns count.
+
+    should_stop is polled before each track (and may block while paused);
+    on stop the XML is still written, keeping whatever was enriched so far.
+    """
     collection = RekordboxCollection.load(xml_in)
     processed = 0
     for track in collection.tracks_in_playlist(playlist):
         if limit is not None and processed >= limit:
+            break
+        if should_stop is not None and should_stop():
             break
         location = track.location
         if location is None or not location.exists():

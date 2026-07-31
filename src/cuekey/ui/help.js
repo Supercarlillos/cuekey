@@ -44,6 +44,14 @@ const HELP_CONTENT = {
   <li>Ojo: al arrastrar una pista desde el XML, rekordbox reemplaza su información por la del XML (comportamiento de rekordbox). Con <i>Keep</i> no pierdes nada; prueba primero con una playlist pequeña.</li>
 </ul>
 
+<h3>Pausar o cancelar un análisis</h3>
+<ul>
+  <li>Durante cualquier análisis aparecen <b>⏸ Pause</b> y <b>✕ Cancel</b> junto a la barra de progreso.</li>
+  <li>Ambos hacen efecto <b>al terminar la pista en curso</b> (unos segundos).</li>
+  <li><b>Pause / Resume</b> congela el análisis sin perder nada — puedes dejarlo pausado el tiempo que quieras.</li>
+  <li><b>Cancel</b> en el flujo XML <b>guarda el XML parcial</b>: las pistas ya analizadas quedan enriquecidas y el resto se mantiene tal cual estaba en tu colección. En el flujo de archivos, los tags ya escritos se conservan.</li>
+</ul>
+
 <h3>Mezcla armónica en 10 segundos</h3>
 <p>Con la rueda: mezcla entre tonalidades con el <b>mismo número o adyacente manteniendo la letra</b> (<span class="pill-inline" style="background:hsl(210 52% 62%)">8A</span> → 7A / 8A / 9A), o <b>cambia de letra con el mismo número</b> (8A → 8B) para pasar de menor a mayor. Al seleccionar una pista, la rueda ilumina sus compatibles y la fila <b>MIX WITH</b> te las lista. Usa la energía para construir subidas y bajadas.</p>
 
@@ -94,6 +102,14 @@ const HELP_CONTENT = {
   <li><b>Keep</b> (default): your hot cues and memory cues are preserved untouched. CueKey's cues are added as extra memory cues, skipping any within 1 second of your marks, and hot cues only fill free slots (A-H).</li>
   <li><b>Replace</b>: discards everything and regenerates cues from scratch.</li>
   <li>Note: when you drag a track from the XML, rekordbox replaces its info with the XML's (that is rekordbox behavior). With <i>Keep</i> you lose nothing; try a small playlist first.</li>
+</ul>
+
+<h3>Pausing or cancelling an analysis</h3>
+<ul>
+  <li>While any analysis runs, <b>⏸ Pause</b> and <b>✕ Cancel</b> appear next to the progress bar.</li>
+  <li>Both take effect <b>after the current track finishes</b> (a few seconds).</li>
+  <li><b>Pause / Resume</b> freezes the analysis without losing anything — you can leave it paused as long as you like.</li>
+  <li><b>Cancel</b> in the XML flow <b>saves a partial XML</b>: already-analyzed tracks stay enriched and the rest remain exactly as they were in your collection. In the files flow, tags already written are kept.</li>
 </ul>
 
 <h3>Harmonic mixing in 10 seconds</h3>

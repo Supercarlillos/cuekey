@@ -61,6 +61,8 @@ class Api:
         self.queued: dict[str, Path] = {}  # track id -> audio path
         self._worker: threading.Thread | None = None
         self._lock = threading.Lock()
+        self._cancel = threading.Event()
+        self._paused = threading.Event()
 
     # ------------------------------------------------------------ plumbing
 
@@ -72,9 +74,31 @@ class Api:
         with self._lock:
             if self._worker is not None and self._worker.is_alive():
                 return False
+            self._cancel.clear()
+            self._paused.clear()
             self._worker = threading.Thread(target=target, args=args, daemon=True)
             self._worker.start()
             return True
+
+    def _stopped(self) -> bool:
+        """Poll point for workers: blocks while paused, True once cancelled."""
+        while self._paused.is_set() and not self._cancel.is_set():
+            time.sleep(0.2)
+        return self._cancel.is_set()
+
+    # ------------------------------------------------------ analysis control
+
+    def pause_analysis(self) -> None:
+        self._paused.set()
+        self._emit({"type": "status", "message": "Paused — finishing the current track first."})
+
+    def resume_analysis(self) -> None:
+        self._paused.clear()
+        self._emit({"type": "status", "message": "Resumed."})
+
+    def cancel_analysis(self) -> None:
+        self._cancel.set()
+        self._paused.clear()  # unblock a paused worker so it can exit
 
     # ------------------------------------------------------------- queueing
 
@@ -122,7 +146,12 @@ class Api:
         from cuekey.analyzer import analyze_file
         from cuekey.tagging import write_tags
 
+        analyzed = 0
         for track_id, path in pending:
+            if self._stopped():
+                self._emit({"type": "done",
+                            "message": f"Cancelled — {analyzed} of {len(pending)} tracks analyzed."})
+                return
             try:
                 analysis = analyze_file(path)
                 if options.get("write_tags"):
@@ -132,6 +161,7 @@ class Api:
                 self._emit({
                     "type": "row_error", "id": track_id, "name": path.name, "message": str(error),
                 })
+            analyzed += 1
         self._emit({"type": "done", "message": f"Analyzed {len(pending)} tracks."})
 
     # ------------------------------------------------------------ rekordbox
@@ -182,10 +212,16 @@ class Api:
                 xml_in, xml_out, analyze=analyze_file,
                 notation=notation, hot_cues=bool(options.get("hot_cues")),
                 replace_cues=bool(options.get("replace_cues")), on_track=on_track,
+                should_stop=self._stopped,
             )
-            self._emit({"type": "done",
-                        "message": f"{count} tracks analyzed → {xml_out.name}. Import it via "
-                                   "rekordbox Preferences → Advanced → Database → rekordbox xml."})
+            if self._cancel.is_set():
+                self._emit({"type": "done",
+                            "message": f"Cancelled — the {count} tracks already analyzed were "
+                                       f"saved to {xml_out.name}; the rest stay unchanged."})
+            else:
+                self._emit({"type": "done",
+                            "message": f"{count} tracks analyzed → {xml_out.name}. Import it via "
+                                       "rekordbox Preferences → Advanced → Database → rekordbox xml."})
         except Exception as error:
             self._emit({"type": "fatal", "message": str(error)})
 

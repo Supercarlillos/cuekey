@@ -112,6 +112,8 @@
     <div class="progress-row">
       <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
       <span class="progress-text" id="progress-text"></span>
+      <button class="btn ghost ctrl hidden" id="pause-btn" onclick="CueKey.pauseResume()">⏸ Pause</button>
+      <button class="btn ghost ctrl danger hidden" id="cancel-btn" onclick="CueKey.cancel()">✕ Cancel</button>
     </div>
     <div class="status" id="status">Add audio files or pick a rekordbox XML to start.</div>
   </footer>

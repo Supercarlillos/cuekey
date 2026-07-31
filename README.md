@@ -1,6 +1,10 @@
 # CueKey
 
-**Open-source DJ track analysis for harmonic mixing.** CueKey analyzes your music library and detects, for every track:
+[![CI](https://github.com/Supercarlillos/cuekey/actions/workflows/ci.yml/badge.svg)](https://github.com/Supercarlillos/cuekey/actions/workflows/ci.yml)
+[![Release](https://img.shields.io/github/v/release/Supercarlillos/cuekey)](https://github.com/Supercarlillos/cuekey/releases/latest)
+[![License](https://img.shields.io/badge/license-PolyForm%20Noncommercial-blue)](LICENSE)
+
+**Free DJ track analysis for harmonic mixing.** CueKey analyzes your music library and detects, for every track:
 
 - 🎹 **Musical key**, in standard (`Am`), Camelot-style wheel (`8A`) or Open Key (`1m`) notation
 - 🥁 **BPM** (tempo), with octave-error correction
@@ -8,6 +12,8 @@
 - 📍 **Automatic cue points** (up to 8) at structural boundaries, snapped to the beat grid
 
 Results can be written to your audio file tags and to a **rekordbox XML collection**, so key, BPM, energy and cue points show up directly in rekordbox.
+
+![CueKey desktop app](docs/images/screenshot.png)
 
 > CueKey is an independent open-source project. It is not affiliated with, endorsed by, or derived from any commercial DJ software. "rekordbox" is a trademark of AlphaTheta Corporation, used here only to describe interoperability.
 
@@ -23,7 +29,9 @@ Supported formats: MP3, M4A/AAC, FLAC, WAV, AIFF, OGG.
 
 ### Desktop app (DMG)
 
-Build (or download from Releases, once published) the standalone app — no Python required on the target Mac:
+**[⬇ Download the latest DMG from Releases](https://github.com/Supercarlillos/cuekey/releases/latest)** — pick `arm64` for Apple Silicon or `intel` for Intel Macs. No Python required.
+
+Or build it yourself:
 
 ```bash
 make dev && make dmg          # produces dist/CueKey-<version>.dmg
@@ -47,7 +55,7 @@ pipx install .
 For development:
 
 ```bash
-git clone https://github.com/<you>/cuekey && cd cuekey
+git clone https://github.com/Supercarlillos/cuekey && cd cuekey
 python3.13 -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
 pytest
@@ -111,4 +119,6 @@ Mix between tracks whose wheel numbers are equal or adjacent, keeping the same l
 
 ## License
 
-[MIT](LICENSE). Contributions welcome.
+[PolyForm Noncommercial 1.0.0](LICENSE) — free to use, modify and share for any **noncommercial** purpose (personal use, hobby, education, nonprofits). Commercial use of the software or derivatives is not permitted. This makes CueKey *source-available* rather than OSI open source.
+
+Contributions are welcome — see [CONTRIBUTING.md](CONTRIBUTING.md). If CueKey is useful to you, consider [supporting the project](DONATE.md) ♥.

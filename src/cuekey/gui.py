@@ -23,6 +23,9 @@ from cuekey.models import TrackAnalysis
 
 WINDOW_TITLE = "CueKey"
 
+# TODO-KOFI: replace with the real Ko-fi URL once the account exists.
+DONATE_URL = "https://github.com/Supercarlillos/cuekey/blob/main/DONATE.md"
+
 _FILE_DIALOG_TYPES = (
     "Audio files (*.mp3;*.m4a;*.aac;*.flac;*.wav;*.aiff;*.aif;*.ogg;*.opus)",
     "All files (*.*)",
@@ -124,6 +127,11 @@ class Api:
 
     def app_info(self) -> dict:
         return {"version": __version__, "language": system_language()}
+
+    def open_donation(self) -> None:
+        import webbrowser
+
+        webbrowser.open(DONATE_URL)
 
     def pick_files(self) -> None:
         picked = self.window.create_file_dialog(

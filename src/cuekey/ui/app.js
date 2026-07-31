@@ -314,6 +314,10 @@ const CueKey = {
     $("help-modal").classList.add("open");
   },
 
+  async donate() {
+    await window.pywebview.api.open_donation();
+  },
+
   closeHelp() {
     $("help-modal").classList.remove("open");
   },

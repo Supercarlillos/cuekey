@@ -1,0 +1,58 @@
+name: Bug report
+description: Something is broken or behaves unexpectedly
+labels: [bug]
+body:
+  - type: input
+    id: version
+    attributes:
+      label: CueKey version
+      description: Shown in the app header (e.g. v0.7.0) or `cuekey --version`
+    validations:
+      required: true
+  - type: input
+    id: macos
+    attributes:
+      label: macOS version and chip
+      placeholder: "macOS 15.2, Apple Silicon (M2)"
+    validations:
+      required: true
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Desktop app (GUI)
+        - CLI
+        - rekordbox XML import/export
+        - Analysis quality (key/BPM/energy/cues)
+        - Installation / DMG
+        - Other
+    validations:
+      required: true
+  - type: input
+    id: format
+    attributes:
+      label: Audio format involved (if relevant)
+      placeholder: "MP3 320kbps / FLAC / M4A…"
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      placeholder: |
+        1. Open the app
+        2. Add folder X
+        3. Press Analyze
+        4. ...
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected vs what happened
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error messages or logs
+      description: Any error shown in the app status bar or terminal output

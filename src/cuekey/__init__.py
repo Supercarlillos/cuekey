@@ -1,7 +1,7 @@
-"""CueKey: open-source DJ track analysis for harmonic mixing.
+"""CueKey: free DJ track analysis for harmonic mixing.
 
 Detects musical key, BPM, energy level and cue points, and integrates
 with rekordbox via XML collection import/export and file tags.
 """
 
-__version__ = "0.6.1"
+__version__ = "0.7.0"

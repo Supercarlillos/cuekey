@@ -55,6 +55,9 @@ const HELP_CONTENT = {
 <h3>Mezcla armónica en 10 segundos</h3>
 <p>Con la rueda: mezcla entre tonalidades con el <b>mismo número o adyacente manteniendo la letra</b> (<span class="pill-inline" style="background:hsl(210 52% 62%)">8A</span> → 7A / 8A / 9A), o <b>cambia de letra con el mismo número</b> (8A → 8B) para pasar de menor a mayor. Al seleccionar una pista, la rueda ilumina sus compatibles y la fila <b>MIX WITH</b> te las lista. Usa la energía para construir subidas y bajadas.</p>
 
+<h3>Apoyar el proyecto ♥</h3>
+<p>CueKey es gratuito y sin uso comercial. Si te resulta útil, puedes apoyar al creador y la evolución del producto con el botón <b>♥</b> (abajo a la izquierda): acepta PayPal y tarjeta vía Ko-fi, o Bitcoin.</p>
+
 <h3>Problemas frecuentes</h3>
 <ul>
   <li><b>✕ "file not found"</b> — el XML apunta a una ruta que ya no existe (archivo movido, borrado o disco externo desconectado). Esa lista te dice qué rutas de tu colección están rotas.</li>
@@ -114,6 +117,9 @@ const HELP_CONTENT = {
 
 <h3>Harmonic mixing in 10 seconds</h3>
 <p>On the wheel: mix between keys with the <b>same or adjacent number keeping the letter</b> (<span class="pill-inline" style="background:hsl(210 52% 62%)">8A</span> → 7A / 8A / 9A), or <b>swap the letter at the same number</b> (8A → 8B) to move between minor and major. Selecting a track lights up its compatible keys on the wheel and lists them under <b>MIX WITH</b>. Use energy to build and release intensity.</p>
+
+<h3>Support the project ♥</h3>
+<p>CueKey is free and noncommercial. If you find it useful, you can support the creator and the evolution of the product with the <b>♥</b> button (bottom left): PayPal and cards via Ko-fi, or Bitcoin.</p>
 
 <h3>Troubleshooting</h3>
 <ul>

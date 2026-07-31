@@ -26,12 +26,16 @@ echo "==> Building CueKey.app v$VERSION"
 APP="dist/CueKey.app"
 test -d "$APP" || { echo "app bundle missing"; exit 1; }
 
-echo "==> Smoke testing the bundled app"
-CUEKEY_SMOKE=1 "$APP/Contents/MacOS/CueKey"
+if [ -z "${CUEKEY_SKIP_SMOKE:-}" ]; then
+    echo "==> Smoke testing the bundled app"
+    CUEKEY_SMOKE=1 "$APP/Contents/MacOS/CueKey"
+else
+    echo "==> Skipping smoke test (CUEKEY_SKIP_SMOKE set)"
+fi
 
 echo "==> Creating DMG"
 STAGE="dist/dmg-stage"
-DMG="dist/CueKey-$VERSION.dmg"
+DMG="dist/CueKey-$VERSION${CUEKEY_DMG_SUFFIX:+-$CUEKEY_DMG_SUFFIX}.dmg"
 rm -rf "$STAGE" "$DMG"
 mkdir -p "$STAGE"
 cp -R "$APP" "$STAGE/"

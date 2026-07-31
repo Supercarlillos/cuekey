@@ -334,19 +334,26 @@ window.CueKey = CueKey;
 
 /* ------------------------------------------------------------ wiring */
 
-function setHelpLanguage(lang) {
+function setHelpLanguage(lang, remember = false) {
   $("help-body").innerHTML = HELP_CONTENT[lang] || HELP_CONTENT.en;
   for (const b of $("help-lang").children) b.classList.toggle("active", b.dataset.value === lang);
+  if (remember) {
+    try { localStorage.setItem("cuekeyHelpLang", lang); } catch (e) { /* file:// may block storage */ }
+  }
+}
+
+function storedHelpLanguage() {
+  try { return localStorage.getItem("cuekeyHelpLang"); } catch (e) { return null; }
 }
 
 document.addEventListener("DOMContentLoaded", () => {
   buildWheel();
   renderTable();
 
-  setHelpLanguage(navigator.language && navigator.language.startsWith("es") ? "es" : "en");
+  setHelpLanguage(storedHelpLanguage() || "en");
   $("help-lang").addEventListener("click", (e) => {
     const btn = e.target.closest("button");
-    if (btn) setHelpLanguage(btn.dataset.value);
+    if (btn) setHelpLanguage(btn.dataset.value, true);
   });
   $("help-modal").addEventListener("click", (e) => {
     if (e.target === $("help-modal")) CueKey.closeHelp();
@@ -406,5 +413,7 @@ document.addEventListener("DOMContentLoaded", () => {
   window.addEventListener("pywebviewready", async () => {
     const info = await window.pywebview.api.app_info();
     $("version").textContent = `v${info.version}`;
+    // System language wins unless the user already picked one manually.
+    if (!storedHelpLanguage()) setHelpLanguage(info.language === "es" ? "es" : "en");
   });
 });

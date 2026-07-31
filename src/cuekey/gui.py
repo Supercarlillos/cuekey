@@ -35,6 +35,26 @@ def ui_dir() -> Path:
     return Path(__file__).parent / "ui"
 
 
+def system_language() -> str:
+    """Two-letter system language ('es', 'en', ...).
+
+    Finder-launched apps don't inherit LANG and WKWebView reports its own
+    navigator.language, so ask macOS directly via NSLocale.
+    """
+    try:
+        from Foundation import NSLocale  # provided by pywebview's pyobjc deps
+
+        preferred = NSLocale.preferredLanguages()
+        if preferred:
+            return str(preferred[0])[:2].lower()
+    except Exception:
+        pass
+    import locale
+
+    lang = locale.getlocale()[0] or os.environ.get("LANG", "en")
+    return (lang or "en")[:2].lower()
+
+
 def _track_payload(analysis: TrackAnalysis, track_id: str, name: str) -> dict:
     key = analysis.key.key
     return {
@@ -103,7 +123,7 @@ class Api:
     # ------------------------------------------------------------- queueing
 
     def app_info(self) -> dict:
-        return {"version": __version__}
+        return {"version": __version__, "language": system_language()}
 
     def pick_files(self) -> None:
         picked = self.window.create_file_dialog(

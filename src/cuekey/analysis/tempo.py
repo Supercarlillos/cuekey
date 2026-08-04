@@ -117,25 +117,97 @@ def pick_metrical_level(bpm: float, onset_env: np.ndarray, sr: int) -> float:
     return bpm
 
 
+def local_maxima(x: np.ndarray) -> np.ndarray:
+    """Boolean mask of local maxima (pure numpy)."""
+    mask = np.zeros(len(x), dtype=bool)
+    if len(x) >= 3:
+        mask[1:-1] = (x[1:-1] > x[:-2]) & (x[1:-1] >= x[2:])
+    return mask
+
+
+def estimate_bpm(onset_env: np.ndarray, sr: int) -> float:
+    """Base tempo from the onset autocorrelation, scored at 8 beat-period
+    multiples over a candidate grid (same idea as pick_metrical_level)."""
+    import librosa
+
+    ac = librosa.autocorrelate(onset_env)
+    if ac.size == 0 or ac[0] <= 0:
+        return 120.0
+    ac = ac / ac[0]
+    best_bpm, best_score = 120.0, -np.inf
+    for candidate in np.arange(MIN_BPM, MAX_BPM, 0.5):
+        lag = 60.0 * sr / (_HOP_LENGTH * candidate)
+        total, used = 0.0, 0
+        for k in range(1, 9):
+            index = k * lag
+            i0 = int(index)
+            if i0 + 1 >= ac.size:
+                break
+            frac = index - i0
+            total += (1 - frac) * ac[i0] + frac * ac[i0 + 1]
+            used += 1
+        if used:
+            score = total / used
+            if score > best_score:
+                best_bpm, best_score = float(candidate), score
+    return best_bpm
+
+
+def track_beats(onset_env: np.ndarray, sr: int, bpm: float,
+                tightness: float = 100.0) -> np.ndarray:
+    """Beat positions (frame indices) via Ellis' dynamic-programming tracker.
+
+    Pure numpy implementation — librosa's version relies on numba
+    @guvectorize kernels that segfault inside frozen (PyInstaller) apps.
+    """
+    n = len(onset_env)
+    if n == 0 or bpm <= 0:
+        return np.array([], dtype=int)
+    period = max(1, round(60.0 * sr / (_HOP_LENGTH * bpm)))
+
+    # Smooth the (normalized) envelope with a beat-length gaussian.
+    std = onset_env.std(ddof=1)
+    normalized = onset_env / std if std > 0 else onset_env
+    window = np.exp(-0.5 * ((np.arange(-period, period + 1) * 32.0 / period) ** 2))
+    localscore = np.convolve(normalized, window, mode="same")
+
+    # DP: each frame links back to the best predecessor about one period ago.
+    backlink = np.full(n, -1, dtype=int)
+    cumscore = np.zeros(n)
+    offsets = np.arange(-2 * period, -(period // 2) + 1)
+    txcost = -tightness * np.log(-offsets / period) ** 2
+    for i in range(n):
+        window_idx = i + offsets
+        valid = window_idx >= 0
+        if not valid.any():
+            cumscore[i] = localscore[i]
+            continue
+        scores = txcost[valid] + cumscore[window_idx[valid]]
+        best = int(np.argmax(scores))
+        cumscore[i] = localscore[i] + scores[best]
+        backlink[i] = int(window_idx[valid][best])
+
+    # Last beat: final strong local maximum of the cumulative score.
+    maxima = local_maxima(cumscore)
+    if not maxima.any():
+        return np.array([], dtype=int)
+    threshold = 0.5 * np.median(cumscore[maxima][cumscore[maxima] > 0]) \
+        if (cumscore[maxima] > 0).any() else 0.0
+    strong = np.flatnonzero(maxima & (cumscore >= threshold))
+    if strong.size == 0:
+        return np.array([], dtype=int)
+    beats = [int(strong[-1])]
+    while backlink[beats[-1]] >= 0:
+        beats.append(int(backlink[beats[-1]]))
+    return np.array(beats[::-1], dtype=int)
+
+
 def detect_tempo(y: np.ndarray, sr: int) -> BeatGrid:
     import librosa
 
     onset_env = librosa.onset.onset_strength(y=y, sr=sr, hop_length=_HOP_LENGTH)
-    tempo, beat_frames = librosa.beat.beat_track(
-        onset_envelope=onset_env, sr=sr, hop_length=_HOP_LENGTH, trim=False
-    )
+    bpm = pick_metrical_level(estimate_bpm(onset_env, sr), onset_env, sr)
+    beat_frames = track_beats(onset_env, sr, bpm)
     beat_times = librosa.frames_to_time(beat_frames, sr=sr, hop_length=_HOP_LENGTH)
-    bpm = fold_bpm(refine_bpm(float(np.atleast_1d(tempo)[0]), beat_times))
-
-    releveled = pick_metrical_level(bpm, onset_env, sr)
-    if abs(releveled - bpm) > 0.5:
-        # Re-track beats at the corrected tempo so the grid (and cue
-        # snapping) matches, then re-refine on the new grid.
-        _, beat_frames = librosa.beat.beat_track(
-            onset_envelope=onset_env, sr=sr, hop_length=_HOP_LENGTH,
-            bpm=releveled, trim=False,
-        )
-        beat_times = librosa.frames_to_time(beat_frames, sr=sr, hop_length=_HOP_LENGTH)
-        bpm = fold_bpm(refine_bpm(releveled, beat_times))
-    bpm = snap_bpm(bpm)
+    bpm = snap_bpm(fold_bpm(refine_bpm(bpm, beat_times)))
     return BeatGrid(bpm=round(bpm, 2), beat_times=beat_times)

@@ -28,14 +28,22 @@ def _loudness_score(y: np.ndarray) -> float:
 
 
 def _onset_score(y: np.ndarray, sr: int) -> float:
+    # Count onset-envelope peaks with numpy (librosa's onset_detect goes
+    # through numba kernels that are unreliable in frozen apps).
     import librosa
 
-    onsets = librosa.onset.onset_detect(y=y, sr=sr, units="time")
+    from cuekey.analysis.tempo import local_maxima
+
     duration = len(y) / sr
     if duration <= 0:
         return 0.0
-    rate = len(onsets) / duration  # onsets per second
-    return float(np.clip(rate / 6.0, 0.0, 1.0))
+    envelope = librosa.onset.onset_strength(y=y, sr=sr)
+    if envelope.size == 0:
+        return 0.0
+    threshold = envelope.mean() + envelope.std()
+    peaks = int(np.count_nonzero(local_maxima(envelope) & (envelope >= threshold)))
+    rate = peaks / duration  # strong onsets per second
+    return float(np.clip(rate / 4.0, 0.0, 1.0))
 
 
 def _bass_score(y: np.ndarray, sr: int) -> float:

@@ -317,11 +317,12 @@ def main() -> None:
         def report(path: Path, analysis, error) -> None:
             outcomes.append(
                 f"{path.name}: ERROR {error}" if error is not None
-                else f"{path.name}: {analysis.key.key.camelot} {analysis.bpm}"
+                else f"{path.name}: {analysis.key.key.camelot} {analysis.bpm} "
+                     f"e{analysis.energy} cues={len(analysis.cues)}"
             )
 
         workers = int(os.environ.get("CUEKEY_SELFTEST_WORKERS", "2"))
-        analyze_many(paths, report, max_workers=workers, use_cache=False, with_cues=False)
+        analyze_many(paths, report, max_workers=workers, use_cache=False, with_cues=True)
         print("\n".join(outcomes))
         return
 

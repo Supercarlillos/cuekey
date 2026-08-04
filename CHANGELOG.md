@@ -6,6 +6,15 @@ All notable changes to CueKey are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.8.4] - 2026-08-04
+
+### Fixed
+- Definitive fix for worker segfaults in the packaged app: beat tracking and onset-peak counting are now pure-numpy implementations (Ellis dynamic-programming tracker), removing librosa's numba @guvectorize kernels — which are unreliable inside frozen (PyInstaller) apps — from the analysis path. Verified: 30 previously-crashing tracks analyze cleanly at full parallelism with the complete pipeline (key, BPM, energy, cues).
+
+### Changed
+- BPM accuracy slightly improved by the new tracker (e.g. a 120.27 BPM reference track now reads 120.25).
+- The QA selftest (`CUEKEY_SELFTEST`) now exercises the full pipeline including cue detection.
+
 ## [0.8.3] - 2026-08-04
 
 ### Fixed

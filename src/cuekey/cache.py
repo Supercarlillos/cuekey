@@ -18,8 +18,9 @@ from cuekey.camelot import Key
 from cuekey.models import CuePoint, KeyResult, TrackAnalysis
 
 # Bump when detection algorithms change so stale results are recomputed.
-# 1: initial release · 2: BPM grid refinement · 3: HPSS key + metrical re-leveling
-ANALYSIS_VERSION = 3
+# 1: initial release · 2: BPM grid refinement · 3: HPSS key + metrical
+# re-leveling · 4: numpy tracker + tempo prior + inclusive 180 fold
+ANALYSIS_VERSION = 4
 
 
 def default_cache_path() -> Path:

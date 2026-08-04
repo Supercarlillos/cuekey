@@ -79,6 +79,16 @@ _METRICAL_FACTORS = (1.5, 2 / 3, 2.0, 0.5, 4 / 3, 0.75)
 _HOP_LENGTH = 512
 _SWITCH_MARGIN = 1.05  # only re-level if clearly better, to avoid flip-flopping
 
+# Log-normal tempo prior (Ellis 2007): backbeat accents every 2 beats make
+# the half-tempo level autocorrelate as strongly as the true one (141 BPM
+# techno reading as 70.5), so candidates are weighted toward club tempos.
+_PRIOR_CENTER_BPM = 125.0
+_PRIOR_OCTAVE_STD = 1.0
+
+
+def _tempo_prior(bpm: float) -> float:
+    return float(np.exp(-0.5 * (np.log2(bpm / _PRIOR_CENTER_BPM) / _PRIOR_OCTAVE_STD) ** 2))
+
 
 def pick_metrical_level(bpm: float, onset_env: np.ndarray, sr: int) -> float:
     """Resolve metrical-level errors (e.g. locking onto 2/3 of the true tempo).
@@ -107,7 +117,7 @@ def pick_metrical_level(bpm: float, onset_env: np.ndarray, sr: int) -> float:
             frac = index - i0
             total += (1 - frac) * ac[i0] + frac * ac[i0 + 1]
             used += 1
-        return total / used if used else 0.0
+        return (total / used) * _tempo_prior(candidate) if used else 0.0
 
     base_score = score(bpm)
     best_bpm, best_score = bpm, base_score
@@ -151,7 +161,7 @@ def estimate_bpm(onset_env: np.ndarray, sr: int) -> float:
             total += (1 - frac) * ac[i0] + frac * ac[i0 + 1]
             used += 1
         if used:
-            score = total / used
+            score = (total / used) * _tempo_prior(float(candidate))
             if score > best_score:
                 best_bpm, best_score = float(candidate), score
     return best_bpm

@@ -70,6 +70,16 @@ def test_metrical_level_recovers_from_two_thirds_lock(sr: int) -> None:
     assert pick_metrical_level(120.0, onset_env, sr) == pytest.approx(120.0)
 
 
+def test_backbeat_accents_do_not_halve_the_tempo(sr: int) -> None:
+    """Techno pattern: kick every beat at 140 plus a stronger clap every 2nd
+    beat. The clap makes the half-tempo level autocorrelate strongly; the
+    tempo prior must keep the detector on the club level (140, not 70)."""
+    kicks = click_track(bpm=140.0, duration_s=25.0, sr=sr)
+    claps = click_track(bpm=70.0, duration_s=25.0, sr=sr) * 1.6
+    grid = detect_tempo(kicks + claps, sr)
+    assert grid.bpm == pytest.approx(140.0, abs=1.0)
+
+
 def test_downbeats_are_every_fourth_beat() -> None:
     grid = BeatGrid(bpm=120.0, beat_times=np.arange(16, dtype=float))
     assert list(grid.downbeat_times) == [0.0, 4.0, 8.0, 12.0]

@@ -6,6 +6,14 @@ All notable changes to CueKey are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.9.3] - 2026-08-04
+
+### Fixed
+- Half-tempo misdetections on tracks with backbeat accents (141 BPM techno reading as 70.5): tempo candidates are now weighted by a log-normal prior centered on club tempos (Ellis 2007), keeping the detector on the right metrical level. Verified against reference tracks with no regressions.
+
+### Changed
+- Analysis cache version bumped: previously analyzed tracks will be re-analyzed once with the improved detector on the next run.
+
 ## [0.9.2] - 2026-08-04
 
 ### Changed

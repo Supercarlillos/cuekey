@@ -51,9 +51,10 @@ def detect_key(y: np.ndarray, sr: int) -> KeyResult:
     import librosa
 
     # Kick drums and percussion smear the pitch-class profile; analyze the
-    # harmonic component only.
+    # harmonic component only. tuning=0.0 (assume A440) skips
+    # estimate_tuning, whose numba kernels crash inside frozen apps.
     y_harmonic = librosa.effects.harmonic(y)
-    chroma = librosa.feature.chroma_cqt(y=y_harmonic, sr=sr)
+    chroma = librosa.feature.chroma_cqt(y=y_harmonic, sr=sr, tuning=0.0)
     # Median over time is robust against residual noise and transients.
     chroma_mean = np.median(chroma, axis=1)
     return detect_key_from_chroma(chroma_mean)

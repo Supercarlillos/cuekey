@@ -38,7 +38,8 @@ def _segment_boundaries(y: np.ndarray, sr: int, n_segments: int) -> list[float]:
 
     hop = 512
     mfcc = librosa.feature.mfcc(y=y, sr=sr, n_mfcc=13, hop_length=hop)
-    chroma = librosa.feature.chroma_stft(y=y, sr=sr, hop_length=hop)
+    # tuning=0.0 skips estimate_tuning (numba kernels, unreliable frozen).
+    chroma = librosa.feature.chroma_stft(y=y, sr=sr, hop_length=hop, tuning=0.0)
     features = np.vstack([mfcc, chroma])
     # Normalize each feature row so no single dimension dominates clustering.
     features = librosa.util.normalize(features, axis=1)

@@ -6,6 +6,11 @@ All notable changes to CueKey are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.8.5] - 2026-08-04
+
+### Fixed
+- Last remaining frozen-app segfault path: key and cue chroma now pass `tuning=0.0` (assume A440), skipping librosa's `estimate_tuning`/`piptrack` — the final numba @guvectorize kernels reachable from the analysis pipeline. A regression test now fails if any forbidden numba path is ever reintroduced.
+
 ## [0.8.4] - 2026-08-04
 
 ### Fixed

@@ -100,6 +100,34 @@ def test_default_workers_leaves_headroom() -> None:
     assert default_workers() >= 1
 
 
+def test_worker_crash_is_isolated_and_batch_continues(
+    cache_dir: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A native worker crash (simulated via the CUEKEY_TEST_CRASH hook) must
+    not kill the batch: the culprit file gets an error, the rest complete."""
+    monkeypatch.setenv("CUEKEY_TEST_CRASH", "1")
+    tone = (0.3 * np.sin(2 * np.pi * 220 * np.arange(3 * 22050) / 22050)).astype(np.float32)
+    good1, crash, good2 = tmp_path / "g1.wav", tmp_path / "crashme.wav", tmp_path / "g2.wav"
+    for path in (good1, good2):
+        sf.write(str(path), tone, 22050)
+    crash.write_bytes(b"\x00" * 64)
+
+    outcomes: dict[str, str] = {}
+
+    def on_result(path, analysis, error) -> None:
+        outcomes[path.name] = "error" if error is not None else "ok"
+
+    count = analyze_many(
+        [good1, crash, good2], on_result,
+        max_workers=2, use_cache=False, with_cues=False,
+    )
+
+    assert count == 2
+    assert outcomes["crashme.wav"] == "error"
+    assert outcomes["g1.wav"] == "ok"
+    assert outcomes["g2.wav"] == "ok"
+
+
 def test_parallel_pool_end_to_end(cache_dir: Path, tmp_path: Path) -> None:
     """Real process pool with real (tiny) audio files — no monkeypatching
     survives across processes, so this exercises the actual pipeline."""

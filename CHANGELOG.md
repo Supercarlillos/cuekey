@@ -6,6 +6,15 @@ All notable changes to CueKey are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.8.1] - 2026-08-04
+
+### Fixed
+- A crashing worker process (e.g. a corrupt file taking down the native decoder) no longer aborts the whole batch with "the process pool is not usable anymore": the pool is rebuilt automatically, crash suspects are retried one at a time to identify the culprit file (marked with a clear error), and the rest of the batch continues.
+
+### Changed
+- Worker processes are recycled every 16 tracks and the worker count is also capped by available RAM, preventing memory-pressure kills on very large batches.
+- The completion message now reports analyzed vs failed counts.
+
 ## [0.8.0] - 2026-08-01
 
 ### Added

@@ -45,8 +45,15 @@ def analyze_file(path: Path, with_cues: bool = True) -> TrackAnalysis:
 
 
 def default_workers() -> int:
-    """Leave two cores for the UI and the OS."""
-    return max(1, (os.cpu_count() or 2) - 2)
+    """Leave two cores for the UI/OS and cap by RAM (analysis peaks at
+    roughly 2 GB per worker on long tracks)."""
+    by_cores = max(1, (os.cpu_count() or 2) - 2)
+    try:
+        ram_gb = os.sysconf("SC_PHYS_PAGES") * os.sysconf("SC_PAGE_SIZE") / 2**30
+        by_ram = max(1, int(ram_gb / 2.5))
+    except (ValueError, OSError, AttributeError):
+        by_ram = by_cores
+    return min(by_cores, by_ram)
 
 
 def _warm_worker() -> None:
@@ -54,6 +61,8 @@ def _warm_worker() -> None:
 
 
 def _analyze_task(path_str: str, with_cues: bool) -> TrackAnalysis:
+    if os.environ.get("CUEKEY_TEST_CRASH") and Path(path_str).name.startswith("crashme"):
+        os._exit(1)  # test hook: simulate a native decoder crash
     return analyze_file(Path(path_str), with_cues=with_cues)
 
 
@@ -108,13 +117,22 @@ def analyze_many(
                 on_result(path, None, error)
         return succeeded
 
+    from collections import deque
+    from concurrent.futures.process import BrokenProcessPool
+
     context = multiprocessing.get_context("spawn")
     stopped = False
-    with futures.ProcessPoolExecutor(
-        max_workers=workers, mp_context=context, initializer=_warm_worker
-    ) as pool:
+    queue: deque[Path] = deque(misses)
+    quarantine: deque[Path] = deque()  # crash suspects, retried one at a time
+    rebuilds = 0
+    max_rebuilds = 10 + len(misses) // 25
+
+    while (queue or quarantine) and not stopped and rebuilds <= max_rebuilds:
+        pool = futures.ProcessPoolExecutor(
+            max_workers=workers, mp_context=context, initializer=_warm_worker,
+            max_tasks_per_child=16,  # recycle workers so memory can't creep
+        )
         in_flight: dict[futures.Future, Path] = {}
-        pending = iter(misses)
 
         def submit_next() -> bool:
             nonlocal stopped
@@ -122,35 +140,64 @@ def analyze_many(
                 return False
             if should_stop is not None and should_stop():
                 stopped = True
-                # Drop everything that has not started running yet.
-                for future in list(in_flight):
+                for future in list(in_flight):  # drop not-yet-started work
                     if future.cancel():
                         del in_flight[future]
                 return False
-            path = next(pending, None)
-            if path is None:
+            if quarantine:
+                # Isolate suspects: exactly one in flight, so a crash
+                # unambiguously identifies the culprit file.
+                if in_flight:
+                    return False
+                path = quarantine.popleft()
+            elif queue:
+                path = queue.popleft()
+            else:
                 return False
             in_flight[pool.submit(_analyze_task, str(path), with_cues)] = path
             return True
 
-        for _ in range(workers + 2):  # small buffer keeps the pool fed
-            if not submit_next():
-                break
+        try:
+            for _ in range(workers + 2):  # small buffer keeps the pool fed
+                if not submit_next():
+                    break
+            while in_flight:
+                done, _ = futures.wait(list(in_flight), return_when=futures.FIRST_COMPLETED)
+                for future in done:
+                    path = in_flight.pop(future)
+                    try:
+                        analysis = future.result()
+                        if cache:
+                            cache.put(path, analysis, has_cues=with_cues)
+                        succeeded += 1
+                        on_result(path, analysis, None)
+                    except futures.CancelledError:
+                        pass
+                    except BrokenProcessPool:
+                        in_flight[future] = path  # count it among the crashed
+                        raise  # handled by the outer except: rebuild the pool
+                    except Exception as error:
+                        on_result(path, None, error)
+                    submit_next()
+            pool.shutdown()
+            break  # batch finished (or stopped) without a crash
+        except BrokenProcessPool:
+            # A worker died (native crash / killed). Report or retry the
+            # tracks that were in flight, then continue with a fresh pool.
+            rebuilds += 1
+            crashed = list(in_flight.values())
+            if len(crashed) == 1:
+                on_result(crashed[0], None, RuntimeError(
+                    "analysis worker crashed on this file (corrupt or unsupported encoding?)"
+                ))
+            else:
+                quarantine.extend(crashed)
+            pool.shutdown(wait=False, cancel_futures=True)
 
-        while in_flight:
-            done, _ = futures.wait(list(in_flight), return_when=futures.FIRST_COMPLETED)
-            for future in done:
-                path = in_flight.pop(future)
-                try:
-                    analysis = future.result()
-                    if cache:
-                        cache.put(path, analysis, has_cues=with_cues)
-                    succeeded += 1
-                    on_result(path, analysis, None)
-                except futures.CancelledError:
-                    pass
-                except Exception as error:
-                    on_result(path, None, error)
-                submit_next()
+    if rebuilds > max_rebuilds:
+        for path in list(quarantine) + list(queue):
+            on_result(path, None, RuntimeError(
+                "skipped: analysis workers kept crashing"
+            ))
 
     return succeeded

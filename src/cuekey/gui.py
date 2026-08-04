@@ -195,6 +195,10 @@ class Api:
         if self._cancel.is_set():
             self._emit({"type": "done",
                         "message": f"Cancelled — {analyzed} of {len(pending)} tracks analyzed."})
+        elif analyzed != len(pending):
+            self._emit({"type": "done",
+                        "message": f"Analyzed {analyzed} of {len(pending)} tracks "
+                                   f"({len(pending) - analyzed} failed — marked with ✕)."})
         else:
             self._emit({"type": "done", "message": f"Analyzed {len(pending)} tracks."})
 

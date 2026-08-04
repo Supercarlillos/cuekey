@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "cuekey"
-version = "0.8.0"
+version = "0.8.1"
 description = "Free DJ track analysis: musical key (Camelot/Open Key), BPM, energy level and automatic cue points, with rekordbox XML integration."
 readme = "README.md"
 license = { text = "PolyForm-Noncommercial-1.0.0" }

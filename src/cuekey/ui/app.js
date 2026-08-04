@@ -16,6 +16,7 @@ const state = {
   done: 0,
   busy: false,
   paused: false,
+  errors: [],          // {name, message}
 };
 
 const $ = (id) => document.getElementById(id);
@@ -253,6 +254,33 @@ function setProgress() {
 
 function setStatus(text) { $("status").textContent = text; }
 
+function recordError(name, message) {
+  state.errors.push({ name, message });
+  const chip = $("errors-chip");
+  chip.textContent = `⚠ ${state.errors.length}`;
+  chip.classList.remove("hidden");
+  if (!$("errors-panel").classList.contains("hidden")) renderErrors();
+}
+
+function renderErrors() {
+  $("errors-title").textContent = `Errors (${state.errors.length})`;
+  const list = $("errors-list");
+  const fragment = document.createDocumentFragment();
+  for (const e of state.errors) {
+    const item = document.createElement("div");
+    item.className = "error-item";
+    const title = document.createElement("div");
+    title.className = "t";
+    title.textContent = e.name;
+    const message = document.createElement("div");
+    message.className = "m";
+    message.textContent = e.message;
+    item.append(title, message);
+    fragment.appendChild(item);
+  }
+  list.replaceChildren(fragment);
+}
+
 function setBusy(busy) {
   state.busy = busy;
   state.paused = false;
@@ -302,7 +330,7 @@ const CueKey = {
       case "row_error":
         state.done += 1; setProgress();
         upsertTrack({ id: event.id, name: event.name, error: true });
-        setStatus(`Error in ${event.name}: ${event.message}`);
+        recordError(event.name, event.message);  // status stays on "Analyzing…"
         break;
       case "done":
         setBusy(false);
@@ -335,10 +363,27 @@ const CueKey = {
     if (!pending.length) { setStatus("Nothing to analyze — add audio files first."); return; }
     setBusy(true);
     state.total = pending.length; state.done = 0; setProgress();
+    setStatus(`Analyzing ${pending.length} tracks…`);
     await window.pywebview.api.analyze(pending.map((t) => t.id), {
       notation: state.notation,
       write_tags: $("opt-tags").checked,
     });
+  },
+
+  toggleErrors() {
+    const panel = $("errors-panel");
+    panel.classList.toggle("hidden");
+    if (!panel.classList.contains("hidden")) renderErrors();
+  },
+
+  async copyErrors() {
+    const text = state.errors.map((e) => `${e.name}: ${e.message}`).join("\n");
+    try {
+      await navigator.clipboard.writeText(text);
+      setStatus("Errors copied to clipboard.");
+    } catch (err) {
+      setStatus("Could not copy — select the text manually.");
+    }
   },
 
   async pauseResume() {

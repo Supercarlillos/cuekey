@@ -6,6 +6,11 @@ All notable changes to CueKey are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.9.1] - 2026-08-04
+
+### Changed
+- The status bar stays on "Analyzing…" during a run; per-track errors no longer hijack it. Errors collect behind a discreet "⚠ N" chip next to the progress counter that opens a scrollable panel (track + reason, selectable text, one-click copy).
+
 ## [0.9.0] - 2026-08-04
 
 ### Added

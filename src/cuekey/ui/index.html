@@ -112,8 +112,17 @@
     <div class="progress-row">
       <div class="progress"><div class="progress-fill" id="progress-fill"></div></div>
       <span class="progress-text" id="progress-text"></span>
+      <button class="errors-chip hidden" id="errors-chip" onclick="CueKey.toggleErrors()">⚠ 0</button>
       <button class="btn ghost ctrl hidden" id="pause-btn" onclick="CueKey.pauseResume()">⏸ Pause</button>
       <button class="btn ghost ctrl danger hidden" id="cancel-btn" onclick="CueKey.cancel()">✕ Cancel</button>
+    </div>
+    <div id="errors-panel" class="hidden">
+      <div class="errors-head">
+        <span id="errors-title">Errors</span>
+        <button class="btn ghost ctrl" onclick="CueKey.copyErrors()">⧉ Copy</button>
+        <button class="help-close" onclick="CueKey.toggleErrors()">✕</button>
+      </div>
+      <div class="errors-list" id="errors-list"></div>
     </div>
     <div class="status-row">
       <button class="donate-btn" onclick="CueKey.donate()" title="Support CueKey — donations keep it free">♥</button>

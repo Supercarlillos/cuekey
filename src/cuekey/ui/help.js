@@ -20,6 +20,7 @@ const HELP_CONTENT = {
   <li>Con <b>Write tags</b> activado, los resultados se guardan en los metadatos de cada archivo: tonalidad (<code>TKEY</code>/<code>INITIALKEY</code>), BPM (<code>TBPM</code>) y un comentario tipo <code>8A - Energy 7</code>. No se crea ningún archivo nuevo.</li>
   <li>rekordbox lee esos tags al añadir la pista o con clic derecho → <i>Reload Tags</i>.</li>
   <li>Los <b>cue points solo se muestran en pantalla</b> en este flujo: los formatos de audio no pueden guardarlos. Para llevarlos a rekordbox usa el flujo XML.</li>
+  <li><b>Rendimiento</b>: el análisis reparte las pistas entre los núcleos del procesador, y los resultados se guardan en una caché local — re-analizar pistas ya procesadas es instantáneo. La caché se invalida sola si el archivo cambia o el algoritmo mejora.</li>
 </ul>
 
 <h3>Flujo rekordbox XML (paso a paso)</h3>
@@ -83,6 +84,7 @@ const HELP_CONTENT = {
   <li>With <b>Write tags</b> enabled, results are stored in each file's metadata: key (<code>TKEY</code>/<code>INITIALKEY</code>), BPM (<code>TBPM</code>) and a comment like <code>8A - Energy 7</code>. No new files are created.</li>
   <li>rekordbox reads those tags when you add the track, or via right click → <i>Reload Tags</i>.</li>
   <li><b>Cue points are display-only</b> in this flow: audio formats cannot store them. Use the XML flow to bring cues into rekordbox.</li>
+  <li><b>Performance</b>: analysis spreads tracks across your CPU cores, and results are stored in a local cache — re-analyzing already-processed tracks is instant. The cache self-invalidates when a file changes or the algorithm improves.</li>
 </ul>
 
 <h3>rekordbox XML workflow (step by step)</h3>

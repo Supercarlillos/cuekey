@@ -111,6 +111,10 @@ The comment format (`8A - Energy 7`) is readable in any DJ software's comment co
 
 Mix between tracks whose wheel numbers are equal or adjacent, keeping the same letter (`8A → 8A, 7A, 9A`), or switch letter at the same number (`8A → 8B`) to move between minor and major. Use energy levels to build or release intensity across your set.
 
+## Performance
+
+Analysis runs **in parallel across CPU cores** (processes, sized to `cores - 2`) and results are stored in a **local cache** (`~/Library/Caches/cuekey`), so re-analyzing a library only computes new or changed files — cached tracks return instantly. The cache self-invalidates when a file's size/mtime changes or the detection algorithms are upgraded. CLI: `-j/--jobs N` to control workers, `--no-cache` to force re-analysis.
+
 ## How it works
 
 - **Key**: chroma (pitch-class) distribution of the whole track correlated against the 24 Krumhansl-Kessler major/minor key profiles (classic music-cognition research data).

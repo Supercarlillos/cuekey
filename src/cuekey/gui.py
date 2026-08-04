@@ -170,26 +170,33 @@ class Api:
         return self._start_worker(self._analyze_worker, pending, options)
 
     def _analyze_worker(self, pending: list[tuple[str, Path]], options: dict) -> None:
-        from cuekey.analyzer import analyze_file
+        from cuekey.analyzer import analyze_many
         from cuekey.tagging import write_tags
 
-        analyzed = 0
-        for track_id, path in pending:
-            if self._stopped():
-                self._emit({"type": "done",
-                            "message": f"Cancelled — {analyzed} of {len(pending)} tracks analyzed."})
-                return
-            try:
-                analysis = analyze_file(path)
-                if options.get("write_tags"):
-                    write_tags(path, analysis, notation=options.get("notation", "camelot"))
-                self._emit({"type": "row", "track": _track_payload(analysis, track_id, path.name)})
-            except Exception as error:
+        id_by_path = {path: track_id for track_id, path in pending}
+
+        def on_result(path: Path, analysis, error) -> None:
+            track_id = id_by_path[path]
+            if error is not None:
                 self._emit({
                     "type": "row_error", "id": track_id, "name": path.name, "message": str(error),
                 })
-            analyzed += 1
-        self._emit({"type": "done", "message": f"Analyzed {len(pending)} tracks."})
+                return
+            if options.get("write_tags"):
+                try:
+                    write_tags(path, analysis, notation=options.get("notation", "camelot"))
+                except Exception:
+                    pass  # tag failures must not stop the batch
+            self._emit({"type": "row", "track": _track_payload(analysis, track_id, path.name)})
+
+        analyzed = analyze_many(
+            [path for _, path in pending], on_result, should_stop=self._stopped,
+        )
+        if self._cancel.is_set():
+            self._emit({"type": "done",
+                        "message": f"Cancelled — {analyzed} of {len(pending)} tracks analyzed."})
+        else:
+            self._emit({"type": "done", "message": f"Analyzed {len(pending)} tracks."})
 
     # ------------------------------------------------------------ rekordbox
 
@@ -211,7 +218,6 @@ class Api:
         return self._start_worker(self._rekordbox_worker, xml_in_path, xml_out_path, options)
 
     def _rekordbox_worker(self, xml_in: Path, xml_out: Path, options: dict) -> None:
-        from cuekey.analyzer import analyze_file
         from cuekey.rekordbox import RekordboxCollection, enrich_collection
         from cuekey.tagging import write_tags
 
@@ -236,7 +242,7 @@ class Api:
                             "track": _track_payload(analysis, f"x{next(counter)}", track.name)})
 
             count = enrich_collection(
-                xml_in, xml_out, analyze=analyze_file,
+                xml_in, xml_out,
                 notation=notation, hot_cues=bool(options.get("hot_cues")),
                 replace_cues=bool(options.get("replace_cues")), on_track=on_track,
                 should_stop=self._stopped,
@@ -280,6 +286,32 @@ def _demo_payloads() -> list[dict]:
 
 
 def main() -> None:
+    # Required for multiprocessing in the frozen (PyInstaller) app: worker
+    # processes re-exec this binary and must exit here instead of opening
+    # another window.
+    import multiprocessing
+
+    multiprocessing.freeze_support()
+
+    selftest = os.environ.get("CUEKEY_SELFTEST")
+    if selftest:
+        # Release QA: exercise the multiprocessing pipeline inside the frozen
+        # bundle without opening a window (colon-separated audio paths).
+        from cuekey.analyzer import analyze_many
+
+        paths = [Path(p) for p in selftest.split(":")]
+        outcomes: list[str] = []
+
+        def report(path: Path, analysis, error) -> None:
+            outcomes.append(
+                f"{path.name}: ERROR {error}" if error is not None
+                else f"{path.name}: {analysis.key.key.camelot} {analysis.bpm}"
+            )
+
+        analyze_many(paths, report, max_workers=2, use_cache=False, with_cues=False)
+        print("\n".join(outcomes))
+        return
+
     api = Api()
     window = webview.create_window(
         WINDOW_TITLE,

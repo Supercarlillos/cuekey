@@ -85,6 +85,8 @@ def pick_metrical_level(bpm: float, onset_env: np.ndarray, sr: int) -> float:
     """
     import librosa
 
+    if bpm <= 0:
+        return bpm
     ac = librosa.autocorrelate(onset_env)
     if ac.size == 0 or ac[0] <= 0:
         return bpm

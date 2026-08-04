@@ -207,6 +207,6 @@ def test_analysis_errors_do_not_abort_batch(collection_xml: tuple[Path, Path], t
 
     assert count == 0
     # Both the failed analysis and the missing file are reported, so
-    # progress counters always reach the total.
-    assert failures == ["Synth Groove", "Ghost Track"]
+    # progress counters always reach the total (order is not guaranteed).
+    assert sorted(failures) == ["Ghost Track", "Synth Groove"]
     assert out.exists()

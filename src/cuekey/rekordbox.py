@@ -131,7 +131,7 @@ class RekordboxCollection:
 def enrich_collection(
     xml_in: Path,
     xml_out: Path,
-    analyze: Callable[[Path], TrackAnalysis],
+    analyze: Callable[[Path], TrackAnalysis] | None = None,
     playlist: str | None = None,
     notation: str = "camelot",
     hot_cues: bool = False,
@@ -139,33 +139,68 @@ def enrich_collection(
     limit: int | None = None,
     on_track: Callable[[RekordboxTrack, TrackAnalysis | None, Exception | None], None] | None = None,
     should_stop: Callable[[], bool] | None = None,
+    max_workers: int | None = None,
+    use_cache: bool = True,
 ) -> int:
     """Analyze every locatable track and write the enriched XML. Returns count.
 
-    should_stop is polled before each track (and may block while paused);
-    on stop the XML is still written, keeping whatever was enriched so far.
+    With analyze=None (the default) files are analyzed cache-aware and in
+    parallel across CPU cores; passing a callable forces a sequential run
+    with that analyzer (used by tests). should_stop is polled between
+    tracks (and may block while paused); on stop the XML is still written,
+    keeping whatever was enriched so far.
     """
     collection = RekordboxCollection.load(xml_in)
-    processed = 0
+
+    pending: list[tuple[RekordboxTrack, Path]] = []
     for track in collection.tracks_in_playlist(playlist):
-        if limit is not None and processed >= limit:
-            break
-        if should_stop is not None and should_stop():
+        if limit is not None and len(pending) >= limit:
             break
         location = track.location
         if location is None or not location.exists():
             if on_track:  # report so progress counters stay accurate
                 on_track(track, None, FileNotFoundError(f"file not found: {location}"))
             continue
-        try:
-            analysis = analyze(location)
-        except Exception as error:  # keep going: one bad file must not kill the batch
+        pending.append((track, location))
+
+    processed = 0
+
+    def apply_result(track: RekordboxTrack, analysis: TrackAnalysis | None,
+                     error: Exception | None) -> None:
+        nonlocal processed
+        if error is not None or analysis is None:
             if on_track:
                 on_track(track, None, error)
-            continue
+            return
         track.apply(analysis, notation=notation, hot_cues=hot_cues, replace_cues=replace_cues)
         processed += 1
         if on_track:
             on_track(track, analysis, None)
+
+    if analyze is not None:
+        for track, location in pending:
+            if should_stop is not None and should_stop():
+                break
+            try:
+                apply_result(track, analyze(location), None)
+            except Exception as error:  # one bad file must not kill the batch
+                apply_result(track, None, error)
+    else:
+        from cuekey.analyzer import analyze_many
+
+        tracks_by_path: dict[Path, list[RekordboxTrack]] = {}
+        for track, location in pending:
+            tracks_by_path.setdefault(location, []).append(track)
+
+        def on_result(path: Path, analysis: TrackAnalysis | None,
+                      error: Exception | None) -> None:
+            for track in tracks_by_path[path]:
+                apply_result(track, analysis, error)
+
+        analyze_many(
+            list(tracks_by_path), on_result,
+            max_workers=max_workers, use_cache=use_cache, should_stop=should_stop,
+        )
+
     collection.save(xml_out)
     return processed

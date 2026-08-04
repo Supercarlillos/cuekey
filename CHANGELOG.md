@@ -6,6 +6,15 @@ All notable changes to CueKey are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-08-01
+
+### Added
+- Parallel analysis across CPU cores (process pool, `cores - 2` workers by default; `-j/--jobs` in the CLI). ~3x faster on small batches, more on large libraries.
+- Persistent analysis cache (`~/Library/Caches/cuekey`, SQLite) keyed by file path + size + mtime + algorithm version: already-analyzed tracks return instantly; `--no-cache` forces recomputation. Cache entries self-invalidate when files change or detection algorithms are upgraded.
+
+### Changed
+- Pause/Cancel now applies to the parallel batch: pause stops new dispatches (running tracks finish), cancel drops queued work and keeps everything already analyzed.
+
 ## [0.7.1] - 2026-07-31
 
 ### Fixed

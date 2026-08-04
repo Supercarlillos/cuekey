@@ -6,6 +6,15 @@ All notable changes to CueKey are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.9.2] - 2026-08-04
+
+### Changed
+- rekordbox's own `AverageBpm` is never overwritten in the enriched XML: the DJ's beatgrid stays authoritative. CueKey's BPM is only written for tracks rekordbox hasn't analyzed.
+- 180.0 BPM is now representable (the fold range upper bound was exclusive), fixing genuine double-time tracks being halved.
+
+### Notes
+- Half/double-time tempos (e.g. 90 vs 180 on mambo/urban hybrids) are both musically valid counts of the same grid; CueKey may prefer the opposite level to rekordbox on ambiguous tracks. Since v0.9.2 this never affects your rekordbox grids.
+
 ## [0.9.1] - 2026-08-04
 
 ### Changed

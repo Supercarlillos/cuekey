@@ -59,7 +59,10 @@ class RekordboxTrack:
         slots. With replace_cues=True all existing marks are regenerated.
         """
         self.element.set("Tonality", analysis.key.key.standard)
-        self.element.set("AverageBpm", f"{analysis.bpm:.2f}")
+        # rekordbox's own BPM drives the DJ's beatgrid — never contradict it.
+        # Ours is only written when rekordbox hasn't analyzed the track yet.
+        if not self.element.get("AverageBpm"):
+            self.element.set("AverageBpm", f"{analysis.bpm:.2f}")
         self.element.set("Comments", analysis.summary_comment(notation))
 
         if replace_cues:

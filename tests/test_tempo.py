@@ -21,6 +21,8 @@ import numpy as np
         (256.0, 128.0),  # double-tempo error halved
         (60.0, 120.0),
         (174.0, 174.0),  # drum & bass stays put
+        (180.0, 180.0),  # 180 is a real tempo (double-time urban/mambo)
+        (360.0, 180.0),
         (200.0, 100.0),
     ],
 )

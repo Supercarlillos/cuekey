@@ -23,12 +23,16 @@ class BeatGrid:
 
 
 def fold_bpm(bpm: float, low: float = MIN_BPM, high: float = MAX_BPM) -> float:
-    """Fold half/double-tempo estimates into the plausible DJ range."""
+    """Fold half/double-tempo estimates into the plausible DJ range.
+
+    The high bound is inclusive: 180.0 is a real tempo (rekordbox uses it
+    for double-time urban/mambo tracks) and must stay representable.
+    """
     if bpm <= 0:
         return bpm
     while bpm < low:
         bpm *= 2
-    while bpm >= high:
+    while bpm > high:
         bpm /= 2
     return bpm
 
@@ -135,7 +139,7 @@ def estimate_bpm(onset_env: np.ndarray, sr: int) -> float:
         return 120.0
     ac = ac / ac[0]
     best_bpm, best_score = 120.0, -np.inf
-    for candidate in np.arange(MIN_BPM, MAX_BPM, 0.5):
+    for candidate in np.arange(MIN_BPM, MAX_BPM + 0.5, 0.5):
         lag = 60.0 * sr / (_HOP_LENGTH * candidate)
         total, used = 0.0, 0
         for k in range(1, 9):

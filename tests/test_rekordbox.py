@@ -92,6 +92,23 @@ def test_enrich_with_hot_cues(collection_xml: tuple[Path, Path], tmp_path: Path)
     assert nums == ["-1", "-1", "0", "1"]  # memory + hot cues A and B
 
 
+def test_existing_rekordbox_bpm_is_preserved(collection_xml: tuple[Path, Path], tmp_path: Path) -> None:
+    """rekordbox's own BPM drives the DJ's beatgrid: never overwrite it."""
+    xml_path, track = collection_xml
+    content = xml_path.read_text(encoding="utf-8").replace(
+        'TrackID="1" Name="Synth Groove"',
+        'TrackID="1" Name="Synth Groove" AverageBpm="180.00"',
+    )
+    xml_path.write_text(content, encoding="utf-8")
+    out = tmp_path / "out.xml"
+
+    enrich_collection(xml_path, out, analyze=_fake_analysis)
+
+    track_el = ET.parse(out).getroot().find("COLLECTION/TRACK[@TrackID='1']")
+    assert track_el.get("AverageBpm") == "180.00"  # not our 128.00
+    assert track_el.get("Tonality") == "Am"  # key still written
+
+
 def test_playlist_filter(collection_xml: tuple[Path, Path], tmp_path: Path) -> None:
     xml_path, _ = collection_xml
     collection = RekordboxCollection.load(xml_path)

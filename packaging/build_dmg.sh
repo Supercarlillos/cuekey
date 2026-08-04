@@ -26,6 +26,14 @@ echo "==> Building CueKey.app v$VERSION"
 APP="dist/CueKey.app"
 test -d "$APP" || { echo "app bundle missing"; exit 1; }
 
+# Stamp the real version into the bundle (crash reports otherwise say 0.0.0),
+# then re-apply the ad-hoc signature invalidated by the plist edit.
+for key in CFBundleShortVersionString CFBundleVersion; do
+    /usr/libexec/PlistBuddy -c "Set :$key $VERSION" "$APP/Contents/Info.plist" 2>/dev/null \
+        || /usr/libexec/PlistBuddy -c "Add :$key string $VERSION" "$APP/Contents/Info.plist"
+done
+codesign --force --deep -s - "$APP"
+
 if [ -z "${CUEKEY_SKIP_SMOKE:-}" ]; then
     echo "==> Smoke testing the bundled app"
     CUEKEY_SMOKE=1 "$APP/Contents/MacOS/CueKey"

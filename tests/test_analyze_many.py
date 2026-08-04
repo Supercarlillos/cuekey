@@ -100,6 +100,14 @@ def test_default_workers_leaves_headroom() -> None:
     assert default_workers() >= 1
 
 
+def test_appledouble_sidecars_are_not_supported(tmp_path: Path) -> None:
+    from cuekey.audio import is_supported
+
+    assert is_supported(tmp_path / "track.mp3")
+    assert not is_supported(tmp_path / "._track.mp3")  # AppleDouble metadata blob
+    assert not is_supported(tmp_path / ".hidden.flac")
+
+
 def test_worker_crash_is_isolated_and_batch_continues(
     cache_dir: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
 ) -> None:

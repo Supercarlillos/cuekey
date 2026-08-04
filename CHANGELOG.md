@@ -6,6 +6,15 @@ All notable changes to CueKey are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.8.2] - 2026-08-04
+
+### Fixed
+- macOS AppleDouble sidecar files (`._track.mp3`) and other hidden files are no longer picked up as audio when scanning folders.
+- The app bundle now carries its real version (crash reports no longer say 0.0.0); the bundle is re-signed after stamping.
+
+### Added
+- Files that crash an analysis worker are appended to `~/Library/Logs/CueKey/worker-crashes.log` (and the error row points there), so root causes can be reported and chased.
+
 ## [0.8.1] - 2026-08-04
 
 ### Fixed

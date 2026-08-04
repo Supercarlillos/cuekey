@@ -60,6 +60,17 @@ def _warm_worker() -> None:
     import librosa  # noqa: F401  # pay the heavy import once per worker
 
 
+def _log_worker_crash(path: Path) -> None:
+    """Record files that killed a worker so root causes can be chased later."""
+    try:
+        log_dir = Path.home() / "Library" / "Logs" / "CueKey"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        with open(log_dir / "worker-crashes.log", "a", encoding="utf-8") as log:
+            log.write(f"{path}\n")
+    except OSError:
+        pass
+
+
 def _analyze_task(path_str: str, with_cues: bool) -> TrackAnalysis:
     if os.environ.get("CUEKEY_TEST_CRASH") and Path(path_str).name.startswith("crashme"):
         os._exit(1)  # test hook: simulate a native decoder crash
@@ -187,8 +198,10 @@ def analyze_many(
             rebuilds += 1
             crashed = list(in_flight.values())
             if len(crashed) == 1:
+                _log_worker_crash(crashed[0])
                 on_result(crashed[0], None, RuntimeError(
-                    "analysis worker crashed on this file (corrupt or unsupported encoding?)"
+                    "analysis worker crashed on this file — logged to "
+                    "~/Library/Logs/CueKey/worker-crashes.log"
                 ))
             else:
                 quarantine.extend(crashed)

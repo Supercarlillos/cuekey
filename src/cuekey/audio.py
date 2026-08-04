@@ -16,6 +16,10 @@ SUPPORTED_EXTENSIONS = {".mp3", ".m4a", ".aac", ".mp4", ".flac", ".wav", ".aiff"
 
 
 def is_supported(path: Path) -> bool:
+    # Hidden files include macOS AppleDouble sidecars ("._track.mp3"):
+    # metadata blobs that carry an audio extension but contain no audio.
+    if path.name.startswith("."):
+        return False
     return path.suffix.lower() in SUPPORTED_EXTENSIONS
 
 

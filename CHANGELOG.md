@@ -6,6 +6,15 @@ All notable changes to CueKey are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.8.3] - 2026-08-04
+
+### Fixed
+- Deterministic worker segfaults on whole batches of tracks (NULL numba JIT loop pointers): each process now uses a private `NUMBA_CACHE_DIR`, and the build purges stale numba caches so they are never bundled into the DMG. Verified against 24 previously-crashing files at full parallelism.
+
+### Added
+- Hard-crash diagnostics: workers and the main process write a Python traceback to `~/Library/Logs/CueKey/crash-<pid>.log` on SIGSEGV-class crashes.
+- `CUEKEY_SELFTEST_WORKERS` to control the QA selftest's parallelism.
+
 ## [0.8.2] - 2026-08-04
 
 ### Fixed

@@ -297,6 +297,14 @@ def main() -> None:
 
     multiprocessing.freeze_support()
 
+    # The main process may also run analyses (selftest, cached inline path):
+    # keep its numba JIT cache out of the app bundle too, and capture hard
+    # crashes with a Python traceback.
+    from cuekey.analyzer import _isolate_numba_cache, enable_crash_diagnostics
+
+    enable_crash_diagnostics()
+    _isolate_numba_cache()
+
     selftest = os.environ.get("CUEKEY_SELFTEST")
     if selftest:
         # Release QA: exercise the multiprocessing pipeline inside the frozen
@@ -312,7 +320,8 @@ def main() -> None:
                 else f"{path.name}: {analysis.key.key.camelot} {analysis.bpm}"
             )
 
-        analyze_many(paths, report, max_workers=2, use_cache=False, with_cues=False)
+        workers = int(os.environ.get("CUEKEY_SELFTEST_WORKERS", "2"))
+        analyze_many(paths, report, max_workers=workers, use_cache=False, with_cues=False)
         print("\n".join(outcomes))
         return
 

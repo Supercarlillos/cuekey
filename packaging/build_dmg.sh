@@ -12,6 +12,10 @@ VENV="${VENV:-.venv}"
 
 VERSION="$("$VENV/bin/python" -c 'import cuekey; print(cuekey.__version__)')"
 
+# Purge numba JIT caches from the venv so PyInstaller never bundles stale
+# compiled entries (they caused NULL-loop segfaults in shipped workers).
+find "$VENV/lib" \( -name "*.nbi" -o -name "*.nbc" \) -delete 2>/dev/null || true
+
 echo "==> Building CueKey.app v$VERSION"
 "$VENV/bin/pyinstaller" --noconfirm --clean \
     --windowed \

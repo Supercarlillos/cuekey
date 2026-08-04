@@ -56,7 +56,39 @@ def default_workers() -> int:
     return min(by_cores, by_ram)
 
 
+def enable_crash_diagnostics() -> None:
+    """Dump the Python traceback to a log on hard crashes (SIGSEGV etc.).
+
+    PyInstaller apps ignore PYTHONFAULTHANDLER, so enable it in code; the
+    log names the exact librosa/numpy call that took the process down.
+    """
+    import faulthandler
+
+    try:
+        log_dir = Path.home() / "Library" / "Logs" / "CueKey"
+        log_dir.mkdir(parents=True, exist_ok=True)
+        handle = open(log_dir / f"crash-{os.getpid()}.log", "w")  # noqa: SIM115 (must outlive scope)
+        faulthandler.enable(file=handle)
+    except OSError:
+        pass
+
+
+def _isolate_numba_cache() -> None:
+    """Point numba's JIT cache at a private temp dir for this process.
+
+    librosa compiles its numba functions with cache=True; with a shared
+    cache directory (inside the app bundle, no less) concurrent workers
+    race on the cache files and corrupted entries produce NULL loop
+    pointers — a segfault at call time.
+    """
+    import tempfile
+
+    os.environ["NUMBA_CACHE_DIR"] = tempfile.mkdtemp(prefix="cuekey-numba-")
+
+
 def _warm_worker() -> None:
+    enable_crash_diagnostics()
+    _isolate_numba_cache()
     import librosa  # noqa: F401  # pay the heavy import once per worker
 
 

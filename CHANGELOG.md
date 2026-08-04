@@ -6,6 +6,14 @@ All notable changes to CueKey are documented here. The format follows
 
 ## [Unreleased]
 
+## [0.9.0] - 2026-08-04
+
+### Added
+- rekordbox flow now preloads the whole collection into the table immediately (pending rows), so the app visibly responds while files are located and workers spin up; each row fills in as its analysis completes.
+
+### Changed
+- Table updates are incremental (one row patched per result instead of rebuilding the full table per event) — large collections (3000+ tracks) no longer freeze the UI during analysis; row selection is O(1).
+
 ## [0.8.5] - 2026-08-04
 
 ### Fixed

@@ -227,14 +227,20 @@ class Api:
 
         notation = options.get("notation", "camelot")
         try:
-            total = len(RekordboxCollection.load(xml_in).tracks_in_playlist(None))
-            self._emit({"type": "total", "total": total,
-                        "message": f"Analyzing {total} tracks from {xml_in.name}…"})
-            counter = iter(range(1_000_000))
+            tracks = RekordboxCollection.load(xml_in).tracks_in_playlist(None)
+            # Preload every track into the table right away (pending state);
+            # rows fill in as each analysis completes.
+            self._emit({"type": "queued", "tracks": [
+                {"id": f"x{track.track_id}", "name": track.name, "path": ""}
+                for track in tracks
+            ]})
+            self._emit({"type": "total", "total": len(tracks),
+                        "message": f"Loaded {len(tracks)} tracks from {xml_in.name} — analyzing…"})
 
             def on_track(track, analysis, error) -> None:
+                track_id = f"x{track.track_id}"
                 if error is not None:
-                    self._emit({"type": "row_error", "id": f"x{next(counter)}",
+                    self._emit({"type": "row_error", "id": track_id,
                                 "name": track.name, "message": str(error)})
                     return
                 if options.get("write_tags") and analysis is not None:
@@ -243,7 +249,7 @@ class Api:
                     except Exception:
                         pass  # tag failures must not stop the batch
                 self._emit({"type": "row",
-                            "track": _track_payload(analysis, f"x{next(counter)}", track.name)})
+                            "track": _track_payload(analysis, track_id, track.name)})
 
             count = enrich_collection(
                 xml_in, xml_out,

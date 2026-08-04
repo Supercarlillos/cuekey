@@ -5,6 +5,7 @@
 
 const state = {
   tracks: [],          // {id, name, path, standard, camelot, openkey, wheel, mode, bpm, energy, cues[], duration, error}
+  byId: new Map(),     // id -> track object (same objects as in tracks)
   selectedId: null,
   notation: "camelot",
   filter: "",
@@ -61,56 +62,84 @@ function visibleTracks() {
   return rows;
 }
 
+const rowsById = new Map(); // id -> <tr> element currently in the DOM
+
+function buildRow(t) {
+  const tr = document.createElement("tr");
+  tr.dataset.id = t.id;
+  if (t.id === state.selectedId) tr.classList.add("selected");
+
+  const name = document.createElement("td");
+  name.className = "name";
+  name.textContent = t.name;
+  tr.appendChild(name);
+
+  const key = document.createElement("td");
+  key.className = "center";
+  if (t.error) {
+    key.innerHTML = `<span class="key-pill err">✕</span>`;
+  } else if (t.wheel != null) {
+    const pill = document.createElement("span");
+    pill.className = "key-pill";
+    pill.style.background = keyColor(t.wheel, t.mode);
+    pill.textContent = notationOf(t);
+    key.appendChild(pill);
+  }
+  tr.appendChild(key);
+
+  const bpm = document.createElement("td");
+  bpm.className = "right";
+  bpm.textContent = t.bpm != null ? fmtBpm(t.bpm) : "";
+  tr.appendChild(bpm);
+
+  const energy = document.createElement("td");
+  if (t.energy != null) {
+    energy.innerHTML =
+      `<div class="energy-cell"><div class="energy-bar"><div style="width:${t.energy * 10}%;` +
+      `background:${energyColor(t.energy)}"></div></div><span class="n">${t.energy}</span></div>`;
+  }
+  tr.appendChild(energy);
+
+  const cues = document.createElement("td");
+  cues.className = "cues";
+  cues.textContent = t.cues ? t.cues.length : "";
+  tr.appendChild(cues);
+
+  tr.addEventListener("click", () => selectTrack(t.id));
+  return tr;
+}
+
 function renderTable() {
   const tbody = $("rows");
   const rows = visibleTracks();
   $("empty-state").style.display = state.tracks.length ? "none" : "flex";
 
-  tbody.innerHTML = "";
+  rowsById.clear();
+  const fragment = document.createDocumentFragment();
   for (const t of rows) {
-    const tr = document.createElement("tr");
-    tr.dataset.id = t.id;
-    if (t.id === state.selectedId) tr.classList.add("selected");
-
-    const name = document.createElement("td");
-    name.className = "name";
-    name.textContent = t.name;
-    tr.appendChild(name);
-
-    const key = document.createElement("td");
-    key.className = "center";
-    if (t.error) {
-      key.innerHTML = `<span class="key-pill err">✕</span>`;
-    } else if (t.wheel != null) {
-      const pill = document.createElement("span");
-      pill.className = "key-pill";
-      pill.style.background = keyColor(t.wheel, t.mode);
-      pill.textContent = notationOf(t);
-      key.appendChild(pill);
-    }
-    tr.appendChild(key);
-
-    const bpm = document.createElement("td");
-    bpm.className = "right";
-    bpm.textContent = t.bpm != null ? fmtBpm(t.bpm) : "";
-    tr.appendChild(bpm);
-
-    const energy = document.createElement("td");
-    if (t.energy != null) {
-      energy.innerHTML =
-        `<div class="energy-cell"><div class="energy-bar"><div style="width:${t.energy * 10}%;` +
-        `background:${energyColor(t.energy)}"></div></div><span class="n">${t.energy}</span></div>`;
-    }
-    tr.appendChild(energy);
-
-    const cues = document.createElement("td");
-    cues.className = "cues";
-    cues.textContent = t.cues ? t.cues.length : "";
-    tr.appendChild(cues);
-
-    tr.addEventListener("click", () => selectTrack(t.id));
-    tbody.appendChild(tr);
+    const tr = buildRow(t);
+    fragment.appendChild(tr);
+    rowsById.set(t.id, tr);
   }
+  tbody.replaceChildren(fragment);
+}
+
+function patchRow(t) {
+  // Update one row in place — a full renderTable() per event is quadratic
+  // on large collections.
+  const existing = rowsById.get(t.id);
+  if (state.filter && !t.name.toLowerCase().includes(state.filter.toLowerCase())) {
+    if (existing) {
+      existing.remove();
+      rowsById.delete(t.id);
+    }
+    return;
+  }
+  const fresh = buildRow(t);
+  if (existing) existing.replaceWith(fresh);
+  else $("rows").appendChild(fresh);
+  rowsById.set(t.id, fresh);
+  $("empty-state").style.display = "none";
 }
 
 /* ------------------------------------------------------- detail + wheel */
@@ -170,9 +199,12 @@ function compatList(track) {
 }
 
 function selectTrack(id) {
+  const previous = rowsById.get(state.selectedId);
+  if (previous) previous.classList.remove("selected");
   state.selectedId = id;
-  const track = state.tracks.find((t) => t.id === id);
-  renderTable();
+  const current = rowsById.get(id);
+  if (current) current.classList.add("selected");
+  const track = state.byId.get(id);
   if (!track || track.wheel == null) return;
 
   const color = keyColor(track.wheel, track.mode);
@@ -231,17 +263,30 @@ function setBusy(busy) {
 }
 
 function upsertTrack(data) {
-  const existing = state.tracks.find((t) => t.id === data.id);
-  if (existing) Object.assign(existing, data);
-  else state.tracks.push(data);
-  renderTable();
+  let track = state.byId.get(data.id);
+  if (track) {
+    Object.assign(track, data);
+  } else {
+    track = data;
+    state.tracks.push(track);
+    state.byId.set(track.id, track);
+  }
+  patchRow(track);
+  return track;
 }
 
 const CueKey = {
   onEvent(event) {
     switch (event.type) {
       case "queued":
-        for (const q of event.tracks) upsertTrack(q);
+        // Bulk preload: insert everything, then render the table once.
+        for (const q of event.tracks) {
+          if (!state.byId.has(q.id)) {
+            state.tracks.push(q);
+            state.byId.set(q.id, q);
+          }
+        }
+        renderTable();
         setStatus(`${state.tracks.length} tracks queued.`);
         break;
       case "total":

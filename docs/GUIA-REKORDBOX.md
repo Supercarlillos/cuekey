@@ -1,5 +1,7 @@
 # Guía: cómo usar CueKey con rekordbox
 
+> 🇬🇧 [English version](REKORDBOX-GUIDE.md)
+
 ## Cómo funciona (el concepto)
 
 rekordbox guarda tu colección en una base de datos interna (`master.db`) que
@@ -26,7 +28,7 @@ Qué añade CueKey a cada pista del XML:
 | Campo XML | Qué es | Dónde lo ves en rekordbox |
 |---|---|---|
 | `Tonality` | Tonalidad detectada (`Am`) | Columna **Key** |
-| `AverageBpm` | BPM detectado | Columna **BPM** |
+| `AverageBpm` | BPM detectado — **solo si rekordbox aún no analizó la pista** (tu beatgrid nunca se contradice) | Columna **BPM** |
 | `Comments` | `8A - Energy 7` | Columna **Comentarios** |
 | `POSITION_MARK` | Cue points | Memory cues (y hot cues A-H con `--hot-cues`) |
 
@@ -48,8 +50,9 @@ de música no se copian ni se modifican.
    si además de memory cues quieres hot cues A-H.
 3. Pulsa **rekordbox XML…**, elige tu `collection.xml` y el nombre del
    archivo de salida (por defecto `collection-cuekey.xml`).
-4. Espera a que la barra de progreso termine. Verás cada pista en la tabla
-   con su tonalidad, BPM, energía y nº de cues.
+4. La colección completa aparece en la tabla al momento; cada fila se
+   rellena con tonalidad, BPM, energía y nº de cues según se completa su
+   análisis.
 
 ### Con el CLI
 
@@ -66,8 +69,11 @@ cuekey rekordbox collection.xml -o out.xml --hot-cues --tags
 cuekey rekordbox collection.xml -o out.xml --limit 5
 ```
 
-El análisis tarda ~2-5 segundos por pista. Las pistas cuyo archivo no se
-encuentre en el disco se saltan sin detener el proceso.
+El análisis se reparte entre los núcleos del procesador (~2-5 segundos por
+pista) y los resultados se guardan en caché: re-analizar solo computa lo
+nuevo o cambiado — las pistas ya analizadas vuelven al instante. Las pistas
+cuyo archivo no se encuentre en el disco se reportan (panel ⚠ de errores en
+la app) sin detener el proceso.
 
 ## Paso 3 — Importar el resultado en rekordbox
 
@@ -96,9 +102,12 @@ encuentre en el disco se saltan sin detener el proceso.
 
 - ⚠️ **Al importar una pista desde el XML, rekordbox reemplaza su
   información por la del XML** (es el comportamiento de rekordbox, no de
-  CueKey). Como el XML de CueKey conserva tus cues por defecto, no pierdes
-  nada — pero con *Replace* sí quedarían solo los cues generados. Prueba
-  primero con una playlist pequeña.
+  CueKey). Como el XML de CueKey conserva tus cues y tu BPM de rekordbox por
+  defecto, no pierdes nada — pero con *Replace* sí quedarían solo los cues
+  generados. Prueba primero con una playlist pequeña.
+- **Tu BPM y beatgrid de rekordbox nunca se contradicen**: si rekordbox ya
+  analizó una pista, su `AverageBpm` se conserva tal cual; el BPM de CueKey
+  solo se escribe en pistas que rekordbox aún no haya analizado.
 - El XML enriquecido es un archivo nuevo: tu `collection.xml` original y tu
   base de datos de rekordbox quedan intactos hasta que tú arrastres algo.
 - **Alternativa sin XML**: `cuekey analyze ~/Música/DJ --tags` escribe

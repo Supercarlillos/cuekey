@@ -93,7 +93,7 @@ The comment format (`8A - Energy 7`) is readable in any DJ software's comment co
 
 ### rekordbox workflow
 
-> 📖 Guía detallada en español: [docs/GUIA-REKORDBOX.md](docs/GUIA-REKORDBOX.md)
+> 📖 Step-by-step guide: [English](docs/REKORDBOX-GUIDE.md) · [Español](docs/GUIA-REKORDBOX.md)
 
 1. In rekordbox: `File → Export Collection in xml format` (or use the auto-exported `rekordbox.xml`).
 2. Analyze it:
